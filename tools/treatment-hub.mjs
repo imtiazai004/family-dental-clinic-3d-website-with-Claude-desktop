@@ -99,12 +99,15 @@ ${HEAD(HUB.seoTitle, HUB.description)}
 <main>
   <section class="hub-hero" id="top" aria-labelledby="hub-h">
     <div class="hub-hero-copy">
-      <nav class="crumbs" aria-label="Breadcrumb">
-        <ol>
-          <li><a href="${L.home()}">Home</a></li>
-          <li aria-current="page">Treatments</li>
-        </ol>
-      </nav>
+      <div class="hub-hero-top">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <ol>
+            <li><a href="${L.home()}">Home</a></li>
+            <li aria-current="page">Treatments</li>
+          </ol>
+        </nav>
+        <span class="ring-hint ring-hint-m" aria-hidden="true">Swipe to turn · tap to open</span>
+      </div>
       <p class="eyebrow">${esc(HUB.eyebrow)}</p>
       <h1 id="hub-h">${esc(HUB.title)}</h1>
       <p class="lede">${esc(HUB.lead)}</p>
@@ -117,6 +120,7 @@ ${HEAD(HUB.seoTitle, HUB.description)}
         <span><strong>${esc(CLINIC.rating)}</strong> on Google from ${esc(CLINIC.reviews)} reviews</span>
       </a>
     </div>
+    <div class="ring-zone" aria-hidden="true"></div>
     <div class="ring-ui" aria-label="The ten treatments in 3D">
       <button class="ring-nav" type="button" data-ring="prev" aria-label="Previous treatment">${svg('<path d="M15 5l-7 7 7 7"/>', 'arr')}</button>
       <a class="ring-card" href="${L.page(order[0].slug)}" aria-live="polite">
@@ -127,6 +131,7 @@ ${HEAD(HUB.seoTitle, HUB.description)}
       </a>
       <button class="ring-nav" type="button" data-ring="next" aria-label="Next treatment">${svg('<path d="M9 5l7 7-7 7"/>', 'arr')}</button>
       <span class="ring-count" aria-hidden="true"><b>01</b> / ${String(order.length).padStart(2, '0')}</span>
+      <span class="ring-hint" aria-hidden="true">Drag to turn · click any model to open it</span>
     </div>
     <script type="application/json" id="ring-data">${JSON.stringify(order.map((t) => ({ id: t.id, name: t.name, tag: t.tagline, group: TX_GROUPS[t.group], href: L.page(t.slug), model: HUB.heroModels[t.id] }))).replace(/</g, '\\u003c')}</script>
     <ul class="hub-jump" aria-label="Treatments">${order.map((t, i) => `<li><a href="${L.page(t.slug)}" data-i="${i}">${esc(t.name)}</a></li>`).join('')}</ul>

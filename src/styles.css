@@ -622,7 +622,8 @@ html.xpanel-open { overflow: hidden; }
 .hub-hero-copy { width: min(35rem, 46vw); display: flex; flex-direction: column; gap: 1.15rem; }
 .hub-hero h1 { font-size: clamp(3rem, 6vw, 5.6rem); }
 .hub-jump {
-  list-style: none; margin: 3rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; max-width: 62rem;
+  list-style: none; margin: 2.6rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem;
+  max-width: min(62rem, calc(50vw - var(--gutter) - 1rem)); /* stays clear of the ring's card and arrows */
 }
 .hub-jump a {
   display: inline-flex; align-items: center; min-height: 36px; padding: 0 0.95rem; border-radius: 999px; text-decoration: none;
@@ -666,6 +667,34 @@ html.no-gl .ring-ui { display: none; }
 .ring-count { grid-column: 1 / -1; justify-self: center; font-size: 0.8rem; color: var(--ink-3); letter-spacing: 0.08em; font-variant-numeric: tabular-nums; }
 .ring-count b { color: var(--ink); font-weight: 600; }
 .hub-jump a.is-front { color: var(--ink); border-color: rgba(218, 182, 104, 0.6); background: rgba(218, 182, 104, 0.1); }
+/* The ring itself is drawn on the page-wide 3D canvas; this layer over it catches drags and clicks. */
+.hub-hero-copy, .hub-jump { position: relative; z-index: 2; }
+.ring-zone { position: absolute; z-index: 1; top: 0; bottom: 0; left: 44%; right: 0; cursor: grab; touch-action: pan-y pinch-zoom; -webkit-tap-highlight-color: transparent; }
+html.no-gl .ring-zone { display: none; }
+.ring-zone.on-model { cursor: pointer; }
+html.ring-dragging, html.ring-dragging * { cursor: grabbing !important; -webkit-user-select: none; user-select: none; }
+.ring-ui { pointer-events: none; }
+.ring-ui .ring-nav, .ring-ui .ring-card { pointer-events: auto; }
+/* On narrower landscape screens the names stay on one line that scrolls sideways, as on phones. */
+@media (max-width: 1200px) and (min-aspect-ratio: 9/10) {
+  .hub-jump { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.2rem), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 2.2rem), transparent); }
+  .hub-jump::-webkit-scrollbar { display: none; }
+  .hub-jump a { white-space: nowrap; }
+}
+.hub-hero-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.ring-hint-m { display: none; }
+.ring-hint { grid-column: 1 / -1; justify-self: center; margin-top: -0.4rem; font-size: 0.74rem; letter-spacing: 0.04em; color: var(--ink-3); transition: opacity 0.8s; }
+html.ring-used .ring-hint { opacity: 0.45; }
+.ring-tip { position: fixed; z-index: 40; left: 0; top: 0; pointer-events: none; will-change: transform; }
+.ring-tip > div {
+  display: grid; gap: 0.05rem; padding: 0.5rem 0.85rem 0.55rem; border-radius: 14px; white-space: nowrap;
+  background: rgba(33, 16, 41, 0.88); border: 1px solid rgba(218, 182, 104, 0.45); box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  opacity: 0; transform: translateY(6px) scale(0.96); transform-origin: 0 0; transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.ring-tip.show > div { opacity: 1; transform: none; }
+.ring-tip b { font: 500 1.02rem/1.15 var(--display); color: var(--ink); }
+.ring-tip span { font-size: 0.76rem; font-weight: 600; color: var(--accent); }
 
 .ico { width: 28px; height: 28px; fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .arr { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.25s; flex: none; }
@@ -784,7 +813,7 @@ html.no-gl .ring-ui { display: none; }
   .hub-hero h1 { font-size: clamp(2.6rem, 12vw, 3.4rem); }
   .hub-hero-copy .lede { font-size: 1rem; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
   .hub-hero .rating { display: none; }
-  .hub-jump { flex-wrap: nowrap; overflow-x: auto; margin: 1.2rem calc(-1 * var(--gutter)) 0; padding: 0 var(--gutter) 4px; scrollbar-width: none; background: var(--bg); }
+  .hub-jump { max-width: none; flex-wrap: nowrap; overflow-x: auto; margin: 1.2rem calc(-1 * var(--gutter)) 0; padding: 0 var(--gutter) 4px; scrollbar-width: none; background: var(--bg); }
   .hub-jump::-webkit-scrollbar { display: none; }
   .hub-jump a { white-space: nowrap; }
   .hub-page .hero-loader { left: 50%; top: 30%; }
@@ -796,6 +825,9 @@ html.no-gl .ring-ui { display: none; }
   .ring-ui .ring-nav[data-ring="next"] { grid-column: 3; grid-row: 1; }
   .ring-ui .ring-card { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; padding: 0; border: 0; }
   .ring-ui .ring-count { display: none; }
+  .ring-zone { left: 0; }
+  .ring-ui .ring-hint { display: none; }
+  html.loaded .ring-hint-m { display: block; margin: 0; font-size: 0.72rem; white-space: nowrap; }
   .hub-filters { flex-wrap: nowrap; overflow-x: auto; margin-inline: calc(-1 * var(--gutter)); padding: 0 var(--gutter) 6px; scrollbar-width: none; }
   .hub-filters::-webkit-scrollbar { display: none; }
   /* a soft fade at the right edge shows these rows scroll sideways */
