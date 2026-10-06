@@ -897,6 +897,11 @@ export const HUB = {
     { fromHome: 'How do I book an appointment?' },
     { fromHome: 'What are your timings?' },
   ],
+  // The 3D model each treatment shows on the ring in the page's hero (a type-card model, see src/three/types/).
+  heroModels: {
+    implant: 'single', rct: 'rct-crown', braces: 'braces-metal', crown: 'crown-zirconia', veneer: 'veneer-porcelain',
+    whitening: 'whitening-clinic', filling: 'filling-composite', extraction: 'extract-simple', denture: 'denture-complete', partial: 'partial-metal',
+  },
   // The two moments of each treatment's 3D story shown on its card (story progress 0..1), and framing.
   thumbs: {
     implant: { a: 0.84, b: 0.43, zoom: 0.92, y: -0.1 },

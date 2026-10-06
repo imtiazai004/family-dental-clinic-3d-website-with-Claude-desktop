@@ -117,7 +117,19 @@ ${HEAD(HUB.seoTitle, HUB.description)}
         <span><strong>${esc(CLINIC.rating)}</strong> on Google from ${esc(CLINIC.reviews)} reviews</span>
       </a>
     </div>
-    <ul class="hub-jump" aria-label="Treatments">${order.map((t) => `<li><a href="${L.page(t.slug)}">${esc(t.name)}</a></li>`).join('')}</ul>
+    <div class="ring-ui" aria-label="The ten treatments in 3D">
+      <button class="ring-nav" type="button" data-ring="prev" aria-label="Previous treatment">${svg('<path d="M15 5l-7 7 7 7"/>', 'arr')}</button>
+      <a class="ring-card" href="${L.page(order[0].slug)}" aria-live="polite">
+        <span class="ring-group">${esc(TX_GROUPS[order[0].group])}</span>
+        <b class="ring-name">${esc(order[0].name)}</b>
+        <span class="ring-tag">${esc(order[0].tagline)}</span>
+        <span class="ring-go">See how it works ${ICONS.arrow}</span>
+      </a>
+      <button class="ring-nav" type="button" data-ring="next" aria-label="Next treatment">${svg('<path d="M9 5l7 7-7 7"/>', 'arr')}</button>
+      <span class="ring-count" aria-hidden="true"><b>01</b> / ${String(order.length).padStart(2, '0')}</span>
+    </div>
+    <script type="application/json" id="ring-data">${JSON.stringify(order.map((t) => ({ id: t.id, name: t.name, tag: t.tagline, group: TX_GROUPS[t.group], href: L.page(t.slug), model: HUB.heroModels[t.id] }))).replace(/</g, '\\u003c')}</script>
+    <ul class="hub-jump" aria-label="Treatments">${order.map((t, i) => `<li><a href="${L.page(t.slug)}" data-i="${i}">${esc(t.name)}</a></li>`).join('')}</ul>
     <div class="hero-loader" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17"/></svg></div>
   </section>
 

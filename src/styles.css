@@ -632,6 +632,41 @@ html.xpanel-open { overflow: hidden; }
 .hub-jump a:hover { color: var(--ink); border-color: var(--line-2); background: rgba(247, 242, 234, 0.06); }
 .hub-page .hero-loader { left: calc(50% + 20vw); }
 
+/* The ring of ten treatments in the hero: a card for the one at the front, with previous / next. */
+.ring-ui {
+  position: absolute; z-index: 2; left: 50%; right: 3vw; bottom: clamp(1.6rem, 5vh, 3.4rem);
+  display: grid; grid-template-columns: auto minmax(0, 19rem) auto; justify-content: center; align-items: center; gap: 0.8rem;
+  opacity: 0; transition: opacity 0.8s ease 0.4s;
+}
+html.loaded .ring-ui { opacity: 1; }
+html.no-gl .ring-ui { display: none; }
+.ring-card {
+  display: grid; gap: 0.2rem; padding: 0.95rem 1.3rem 1.05rem; border-radius: 22px; text-decoration: none; color: var(--ink); text-align: center;
+  background: rgba(33, 16, 41, 0.62); border: 1px solid var(--line-2); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35); transition: border-color 0.3s, transform 0.3s;
+}
+.ring-card:hover { border-color: rgba(218, 182, 104, 0.55); transform: translateY(-2px); }
+.ring-card.swap > * { animation: ring-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.ring-card.swap > :nth-child(2) { animation-delay: 40ms; }
+.ring-card.swap > :nth-child(3) { animation-delay: 80ms; }
+.ring-card.swap > :nth-child(4) { animation-delay: 120ms; }
+@keyframes ring-in { from { opacity: 0; transform: translateY(8px); } }
+.ring-group { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.ring-name { font: 500 clamp(1.4rem, 2vw, 1.75rem)/1.1 var(--display); }
+.ring-tag { color: var(--lavender); font-size: 0.9rem; }
+.ring-go { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; margin-top: 0.35rem; color: var(--accent); font-weight: 600; font-size: 0.88rem; }
+.ring-card:hover .ring-go .arr { transform: translateX(4px); }
+.ring-nav {
+  width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: var(--ink);
+  background: rgba(33, 16, 41, 0.55); border: 1px solid var(--line-2); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  transition: border-color 0.2s, background-color 0.2s;
+}
+.ring-nav:hover { border-color: var(--accent); background: rgba(218, 182, 104, 0.12); }
+.ring-nav .arr { width: 20px; height: 20px; }
+.ring-count { grid-column: 1 / -1; justify-self: center; font-size: 0.8rem; color: var(--ink-3); letter-spacing: 0.08em; font-variant-numeric: tabular-nums; }
+.ring-count b { color: var(--ink); font-weight: 600; }
+.hub-jump a.is-front { color: var(--ink); border-color: rgba(218, 182, 104, 0.6); background: rgba(218, 182, 104, 0.1); }
+
 .ico { width: 28px; height: 28px; fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .arr { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.25s; flex: none; }
 
@@ -753,6 +788,14 @@ html.xpanel-open { overflow: hidden; }
   .hub-jump::-webkit-scrollbar { display: none; }
   .hub-jump a { white-space: nowrap; }
   .hub-page .hero-loader { left: 50%; top: 30%; }
+  /* On phones the ring sits above the text: just previous / next at its sides; the highlighted
+     treatment name in the row of links below says which one is at the front. */
+  .ring-ui { left: 0; right: 0; bottom: auto; top: 20svh; grid-template-columns: auto 1fr auto; padding: 0 10px; pointer-events: none; }
+  .ring-ui .ring-nav { pointer-events: auto; width: 38px; height: 38px; }
+  .ring-ui .ring-nav[data-ring="prev"] { grid-column: 1; grid-row: 1; }
+  .ring-ui .ring-nav[data-ring="next"] { grid-column: 3; grid-row: 1; }
+  .ring-ui .ring-card { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; padding: 0; border: 0; }
+  .ring-ui .ring-count { display: none; }
   .hub-filters { flex-wrap: nowrap; overflow-x: auto; margin-inline: calc(-1 * var(--gutter)); padding: 0 var(--gutter) 6px; scrollbar-width: none; }
   .hub-filters::-webkit-scrollbar { display: none; }
   /* a soft fade at the right edge shows these rows scroll sideways */

@@ -2,7 +2,6 @@
 // ten treatments, a "help me choose" band, and the shared booking assistant.
 import { adoptLenis, isCurrentPage } from './ui/page-start.js';
 import './styles.css';
-import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import Lenis from 'lenis';
@@ -129,46 +128,58 @@ addEventListener('pointermove', (e) => {
   pointer.ty = (e.clientY / innerHeight) * 2 - 1;
 }, { passive: true });
 
-function buildHeroTooth(gltf) {
-  const kit = createKit(gltf, stage);
-  const root = new THREE.Group();
-  const pivot = new THREE.Group();
-  root.add(pivot);
-  const tooth = kit.molar();
-  pivot.add(tooth.g);
-  const gk = stage.look === 'gloss' ? makeGlossKit(stage) : null;
-  let pad = null;
-  if (gk) {
-    pad = gk.pad(root, { y: -1.85, w: 2.7, halo: 0.2, haloY: 0.15 });
-    gk.glint(tooth.e, tooth.e, 0.7, 0.86, 0.5, () => 1, 0.6);
-    gk.glint(tooth.e, tooth.e, 0.3, 0.62, 0.32, () => 1, 2.4);
+// ---------------------------------------------------------------- the ring of ten treatments in the hero
+const RING = JSON.parse(document.getElementById('ring-data')?.textContent || '[]');
+const ringCard = document.querySelector('.ring-card');
+const ringCount = document.querySelector('.ring-count b');
+const pills = [...document.querySelectorAll('.hub-jump a[data-i]')];
+let ring = null;
+let lastTurn = 0, hold = 0;
+const AUTO = 3800; // ms each treatment stays at the front
+function showFront(i) {
+  const it = RING[i];
+  if (!it || !ringCard) return;
+  ringCard.href = it.href;
+  ringCard.classList.remove('swap');
+  void ringCard.offsetWidth;
+  ringCard.classList.add('swap');
+  ringCard.querySelector('.ring-group').textContent = it.group;
+  ringCard.querySelector('.ring-name').textContent = it.name;
+  ringCard.querySelector('.ring-tag').textContent = it.tag;
+  if (ringCount) ringCount.textContent = String(i + 1).padStart(2, '0');
+  pills.forEach((p, j) => p.classList.toggle('is-front', j === i));
+  // keep the highlighted name in view when the row of names scrolls sideways (phones)
+  const row = pills[i]?.closest('.hub-jump');
+  if (row && row.scrollWidth > row.clientWidth + 2) {
+    const rr = row.getBoundingClientRect(), pr = pills[i].getBoundingClientRect();
+    row.scrollTo({ left: row.scrollLeft + (pr.left - rr.left) - rr.width / 2 + pr.width / 2, behavior: reduce ? 'auto' : 'smooth' });
   }
-  const dust = makeDust(stage.tier === 0 ? 40 : 90);
-  stage.scene.add(root, dust);
-  if (stage.shadows) root.traverse((o) => { if (o.isMesh && !o.material.transparent) { o.castShadow = true; o.receiveShadow = true; } });
-  return {
-    update(presence, time, L) {
-      const l = L.portrait ? { ...L.main, y: L.main.y + 0.25, s: L.main.s * 0.82 } : L.main;
-      root.visible = presence > 0.002;
-      if (!root.visible) return;
-      const e = 1 - Math.pow(1 - presence, 3);
-      root.scale.setScalar(l.s * (0.6 + 0.4 * e) * 1.05);
-      root.position.set(l.x, l.y + 0.12 - (1 - e) * 0.6, 0);
-      // A slow turn; every few seconds the enamel lifts to show the dentin and pulp inside.
-      const cyc = (time % 9) / 9;
-      const open = reduce ? 0.35 : ease(clamp((cyc - 0.15) / 0.2)) * (1 - ease(clamp((cyc - 0.62) / 0.2)));
-      pivot.rotation.set(0.28 + pointer.y * 0.06, -0.5 + (reduce ? 0 : time * 0.22) + pointer.x * 0.15, 0);
-      pivot.position.y = Math.sin(time * 0.9) * 0.05;
-      tooth.e.position.y = open * 0.62;
-      tooth.p.position.y = open * 0.12;
-      if (pad) gk.fade(pad, e);
-      gk?.update(time);
-      dust.material.uniforms.uTime.value = time;
-      dust.material.uniforms.uPx.value = stage.renderer.getPixelRatio() * 60;
-      dust.material.uniforms.uAmount.value = 0.45 * presence;
-    },
-  };
 }
+function turn(fn) {
+  if (!ring) return;
+  fn();
+  lastTurn = performance.now();
+}
+for (const b of document.querySelectorAll('[data-ring]')) {
+  b.addEventListener('click', () => turn(() => (b.dataset.ring === 'next' ? ring.next() : ring.prev())));
+}
+// Hovering a treatment's name turns the ring to it and holds it there.
+for (const p of pills) {
+  p.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') { hold++; turn(() => ring.go(+p.dataset.i)); } });
+  p.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') hold = Math.max(0, hold - 1); });
+  p.addEventListener('focus', () => turn(() => ring?.go(+p.dataset.i)));
+}
+const ringUi = document.querySelector('.ring-ui');
+ringUi?.addEventListener('pointerenter', () => { hold++; });
+ringUi?.addEventListener('pointerleave', () => { hold = Math.max(0, hold - 1); lastTurn = performance.now(); });
+ringUi?.addEventListener('focusin', () => { hold++; });
+ringUi?.addEventListener('focusout', () => { hold = Math.max(0, hold - 1); });
+addEventListener('keydown', (e) => {
+  if (!ring || !hero || hero.getBoundingClientRect().bottom < innerHeight * 0.4) return;
+  if (e.target.closest?.('input, textarea, .bot')) return;
+  if (e.key === 'ArrowRight') turn(() => ring.next());
+  if (e.key === 'ArrowLeft') turn(() => ring.prev());
+});
 
 async function loadModel() {
   let buf;
@@ -197,8 +208,26 @@ if (stage) {
       window.__stills = await makeStills({ gltf, look: LOOK_NOW, tune: stage.tune, jobs });
       return;
     }
-    scene3d = buildHeroTooth(gltf);
-    scene3d.update(1, 0, computeLayout(stage.view, stage.tune.size));
+    const { buildHubRing } = await import('./three/hub-ring.js');
+    ring = buildHubRing(gltf, stage, RING, { reduce });
+    ring.onFront(showFront);
+    showFront(0);
+    // a soft glow under the ring and floating dust, as on the other pages
+    const gk = stage.look === 'gloss' ? makeGlossKit(stage) : null;
+    const pad = gk ? gk.pad(ring.root, { y: -1.05, w: 5.4, halo: 0.18, haloY: 0.12 }) : null;
+    const dust = makeDust(stage.tier === 0 ? 40 : 90);
+    stage.scene.add(dust);
+    scene3d = {
+      update(presence, time, dt, L, ptr) {
+        ring.update(presence, time, dt, L, ptr);
+        if (pad) gk.fade(pad, presence);
+        gk?.update(time);
+        dust.material.uniforms.uTime.value = time;
+        dust.material.uniforms.uPx.value = stage.renderer.getPixelRatio() * 60;
+        dust.material.uniforms.uAmount.value = 0.45 * presence;
+      },
+    };
+    scene3d.update(1, 0, 0, computeLayout(stage.view, stage.tune.size), pointer);
     stage.renderer.compile(stage.scene, stage.camera);
     html.classList.add('loaded');
     readyAt = performance.now();
@@ -237,8 +266,10 @@ function frame(now) {
     const ready = reduce || SNAP ? 1 : ease(clamp((now - readyAt) / 1200));
     pointer.x += (pointer.tx - pointer.x) * k;
     pointer.y += (pointer.ty - pointer.y) * k;
+    // the ring moves on by itself, unless the visitor is pointing at it or the hero is off screen
+    if (!reduce && !SNAP && !hold && presence > 0.5 && now - lastTurn > AUTO) turn(() => ring.next());
     if (presence * ready > 0.002 || rendered) {
-      scene3d.update(presence * ready, now / 1000, computeLayout(stage.view, stage.tune.size));
+      scene3d.update(presence * ready, now / 1000, dt, computeLayout(stage.view, stage.tune.size), pointer);
       stage.renderer.render(stage.scene, stage.camera);
       rendered = presence * ready > 0.002;
     }
