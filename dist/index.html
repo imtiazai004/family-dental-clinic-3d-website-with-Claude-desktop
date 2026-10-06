@@ -16,8 +16,9 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Dentist","name":"Family Dental & Aesthetic Clinic","telephone":"+92 333 9202134","address":{"@type":"PostalAddress","streetAddress":"1st Floor, Al-Sayed Tower, Nasir Bagh Road, near Amal Labs, Malakandher","addressLocality":"Peshawar","addressRegion":"Khyber Pakhtunkhwa","addressCountry":"PK"},"slogan":"Smiles for every generation","sameAs":["https://www.instagram.com/familydentalclinicpeshawar/"],"employee":{"@type":"Person","name":"Dr. Tabassum Ajmal","jobTitle":"Dentist and prosthodontist"}}
 </script>
-  <script type="module" crossorigin src="./assets/index-DU68Pqwq.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-C29x1-dG.css">
+  <script type="module" crossorigin src="./assets/main-0KOdBeZh.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/nav-B9Ok4Fl-.js">
+  <link rel="stylesheet" crossorigin href="./assets/nav-QeIr4lgO.css">
 </head>
 <body>
 <a class="skip" href="#treatments">Skip to treatments</a>
@@ -32,7 +33,26 @@
     <a href="#implant">Implants</a>
     <a href="#studio">Smile studio</a>
     <a href="#dentist">Your dentist</a>
-    <a href="#treatments">Treatments</a>
+    <div class="nav-dd">
+      <button class="nav-dd-btn" type="button" aria-expanded="false" aria-controls="tx-menu">Treatments <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="nav-menu" id="tx-menu">
+        <div class="nav-menu-cols">
+          <div class="nav-menu-col">
+            <p class="nav-menu-h">Pain or damage</p>
+            <a class="nav-tx" href="treatments/root-canal-treatment/"><b>Root canal treatment</b><span>Save an infected, painful tooth</span></a>
+          </div>
+          <div class="nav-menu-col">
+            <p class="nav-menu-h">Missing teeth</p>
+            <a class="nav-tx" href="treatments/dental-implants/"><b>Dental implants</b><span>Replace a missing tooth</span></a>
+          </div>
+          <div class="nav-menu-col">
+            <p class="nav-menu-h">Smile makeover</p>
+            <a class="nav-tx" href="treatments/braces/"><b>Braces</b><span>Straighten crooked teeth</span></a>
+          </div>
+        </div>
+        <a class="nav-menu-all" href="#treatments">All ten treatments</a>
+      </div>
+    </div>
     <a href="#faq">FAQ</a>
     <a href="#visit">Visit</a>
   </nav>
@@ -148,6 +168,7 @@
         </ol>
         <div class="rail" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
         <button class="btn btn-ghost" type="button" data-book="implant">Ask about implants</button>
+        <a class="copy-more" href="treatments/dental-implants/">Everything about implants</a>
       </div>
     </div>
   </section>
@@ -180,6 +201,7 @@
         </ol>
         <div class="rail" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
         <button class="btn btn-ghost" type="button" data-book="rct">Ask about root canal treatment</button>
+        <a class="copy-more" href="treatments/root-canal-treatment/">Everything about root canal treatment</a>
       </div>
     </div>
   </section>
@@ -214,6 +236,7 @@
             <h3>Braces</h3>
             <p>Brackets and a thin wire apply gentle, steady pressure, moving crowded or crooked teeth into line over several months.</p>
             <button class="btn btn-ghost" type="button" data-book="braces">Ask about braces</button>
+            <a class="copy-more" href="treatments/braces/">Everything about braces</a>
           </li>
           <li class="step">
             <h3>Whitening</h3>
@@ -344,45 +367,45 @@
       </div>
       <ul class="tx-list">
         
-        <li class="tx">
-          <div class="tx-text"><h3>Dental implants</h3><p>A titanium root and a custom crown that replace a missing tooth for the long term.</p></div>
-          <button class="btn btn-ghost btn-sm" type="button" data-book="implant" aria-label="Book dental implants">Book</button>
+        <li class="tx has-page">
+          <div class="tx-text"><h3><a href="treatments/dental-implants/">Dental implants</a></h3><p>A titanium root and a custom crown that replace a missing tooth for the long term.</p></div>
+          <div class="tx-actions"><a class="btn btn-ghost btn-sm" href="treatments/dental-implants/" aria-label="Learn more about dental implants">Learn more</a><button class="btn btn-ghost btn-sm" type="button" data-book="implant" aria-label="Book dental implants">Book</button></div>
         </li>
-        <li class="tx">
-          <div class="tx-text"><h3>Root canal treatment</h3><p>Remove infection from inside a tooth and save it from extraction.</p></div>
-          <button class="btn btn-ghost btn-sm" type="button" data-book="rct" aria-label="Book root canal treatment">Book</button>
+        <li class="tx has-page">
+          <div class="tx-text"><h3><a href="treatments/root-canal-treatment/">Root canal treatment</a></h3><p>Remove infection from inside a tooth and save it from extraction.</p></div>
+          <div class="tx-actions"><a class="btn btn-ghost btn-sm" href="treatments/root-canal-treatment/" aria-label="Learn more about root canal treatment">Learn more</a><button class="btn btn-ghost btn-sm" type="button" data-book="rct" aria-label="Book root canal treatment">Book</button></div>
         </li>
         <li class="tx">
           <div class="tx-text"><h3>Crowns</h3><p>A tooth-shaped cap that protects a cracked, heavily filled or weakened tooth.</p></div>
-          <button class="btn btn-ghost btn-sm" type="button" data-book="crown" aria-label="Book crowns">Book</button>
+          <div class="tx-actions"><button class="btn btn-ghost btn-sm" type="button" data-book="crown" aria-label="Book crowns">Book</button></div>
         </li>
         <li class="tx">
           <div class="tx-text"><h3>Veneers</h3><p>Thin porcelain or composite shells that fix chips, gaps and discolouration on front teeth.</p></div>
-          <button class="btn btn-ghost btn-sm" type="button" data-book="veneer" aria-label="Book veneers">Book</button>
+          <div class="tx-actions"><button class="btn btn-ghost btn-sm" type="button" data-book="veneer" aria-label="Book veneers">Book</button></div>
         </li>
         <li class="tx">
           <div class="tx-text"><h3>Teeth whitening</h3><p>Lift tea, coffee and smoking stains with a supervised whitening treatment.</p></div>
-          <button class="btn btn-ghost btn-sm" type="button" data-book="whitening" aria-label="Book teeth whitening">Book</button>
+          <div class="tx-actions"><button class="btn btn-ghost btn-sm" type="button" data-book="whitening" aria-label="Book teeth whitening">Book</button></div>
         </li>
-        <li class="tx">
-          <div class="tx-text"><h3>Braces</h3><p>Straighten crowded or crooked teeth and correct the bite, gradually and gently.</p></div>
-          <button class="btn btn-ghost btn-sm" type="button" data-book="braces" aria-label="Book braces">Book</button>
+        <li class="tx has-page">
+          <div class="tx-text"><h3><a href="treatments/braces/">Braces</a></h3><p>Straighten crowded or crooked teeth and correct the bite, gradually and gently.</p></div>
+          <div class="tx-actions"><a class="btn btn-ghost btn-sm" href="treatments/braces/" aria-label="Learn more about braces">Learn more</a><button class="btn btn-ghost btn-sm" type="button" data-book="braces" aria-label="Book braces">Book</button></div>
         </li>
         <li class="tx">
           <div class="tx-text"><h3>Fillings</h3><p>Repair cavities with tooth-coloured fillings that blend in with your teeth.</p></div>
-          <button class="btn btn-ghost btn-sm" type="button" data-book="filling" aria-label="Book fillings">Book</button>
+          <div class="tx-actions"><button class="btn btn-ghost btn-sm" type="button" data-book="filling" aria-label="Book fillings">Book</button></div>
         </li>
         <li class="tx">
           <div class="tx-text"><h3>Tooth extraction</h3><p>Careful removal of a tooth that cannot be saved, with clear aftercare advice.</p></div>
-          <button class="btn btn-ghost btn-sm" type="button" data-book="extraction" aria-label="Book tooth extraction">Book</button>
+          <div class="tx-actions"><button class="btn btn-ghost btn-sm" type="button" data-book="extraction" aria-label="Book tooth extraction">Book</button></div>
         </li>
         <li class="tx">
           <div class="tx-text"><h3>Complete dentures</h3><p>A removable full set of teeth for a jaw that has lost all its teeth.</p></div>
-          <button class="btn btn-ghost btn-sm" type="button" data-book="denture" aria-label="Book complete dentures">Book</button>
+          <div class="tx-actions"><button class="btn btn-ghost btn-sm" type="button" data-book="denture" aria-label="Book complete dentures">Book</button></div>
         </li>
         <li class="tx">
           <div class="tx-text"><h3>Removable partial dentures</h3><p>Replace a few missing teeth with an appliance you take out to clean.</p></div>
-          <button class="btn btn-ghost btn-sm" type="button" data-book="partial" aria-label="Book removable partial dentures">Book</button>
+          <div class="tx-actions"><button class="btn btn-ghost btn-sm" type="button" data-book="partial" aria-label="Book removable partial dentures">Book</button></div>
         </li>
       </ul>
     </div>

@@ -42,6 +42,14 @@ To switch:
 - Teeth colour and object size of the gloss look: `TUNE` in `src/config.js`. Version 4.1 uses `size: 1.14, teeth: '#f5f1e9'`; version 4 was `size: 1, teeth: '#ffffff'`.
 - Full return to an earlier version: `git checkout v3-natural`, `git checkout v4-gloss` or `git checkout v4.1-gloss`. The zips `family-dental-website-v3-natural.zip` and `family-dental-website-v4-gloss.zip` are second backups.
 
+## Treatment pages
+
+Each treatment with its own page lives in `src/treatments.js` (intro, 3D story steps, types, who it is for, aftercare, FAQ, related treatments). The build turns every entry into `treatments/<slug>/index.html` using one template (`tools/treatment-page.mjs`), and adds it to the header's Treatments menu and the home page list. To add a page: add an entry, then `npm run build`.
+
+- The page's 3D uses one scene from the home page (`scene: 'implant' | 'rct' | 'braces'`); `src/treatment.js` drives it.
+- For hosts that do not open folder addresses (like `treatments/braces/`), build with `LINKS_EXPLICIT=1` so links point to `index.html` directly.
+- Items marked `confirm: true` need the clinic's confirmation before launch.
+
 ## The 3D models
 
 Every tooth is generated from signed-distance functions (`tools/sdf.mjs`), meshed with surface nets (`tools/mesher.mjs`), simplified and compressed with meshoptimizer into one GLB. To change a shape, edit `tools/build-models.mjs` and run `npm run models`. The GLB opens in Blender if you want to sculpt further.
