@@ -49,6 +49,7 @@ Each treatment with its own page lives in `src/treatments.js` (intro, 3D story s
 - All ten pages have their own deeper 3D story (`story3d`), one module per treatment in `src/three/stories/` (registry in `stories/index.js`, shared helpers in `stories/core.js`). Each story is a set of steps on scroll; `K` holds the camera framing per step.
 - The type cards ("Types of …") explode into their parts when opened. Their models are in `src/three/types/` (`buildTypeModel(kit, key)` in `types/index.js`); the card's `model` key in `treatments.js` picks one.
 - Shared pieces: `src/three/arch.js` (upper arch of teeth), `src/three/shells.js` (veneer/gel shells and surface patches cast from the tooth models), `src/three/partial-kit.js` (partial denture framework, clasps, saddles).
+- The treatments page (`treatments/index.html`) is built by `tools/treatment-hub.mjs` from `HUB` in `src/treatments.js`; the header's "Treatments" is a plain link to it. Its card images come from each page's 3D story: `node tools/make-stills.mjs` (with the preview server running) writes `public/media/tx/<slug>-a.webp` and `-b.webp` (shown on hover); `HUB.thumbs` picks the story moments and framing. Rebuild afterwards.
 - `scene` is only a fallback: a home-page chapter used if a page has no story of its own.
 - For hosts that do not open folder addresses (like `treatments/braces/`), build with `LINKS_EXPLICIT=1` so links point to `index.html` directly.
 - Items marked `confirm: true` need the clinic's confirmation before launch.

@@ -13,7 +13,6 @@ import { makeDust } from './three/procedural.js';
 import { initExplodeCards } from './ui/explode-cards.js';
 import { createBot } from './ui/bot.js';
 import { createLabels } from './ui/labels.js';
-import { initNavMenu } from './ui/nav.js';
 
 const html = document.documentElement;
 const ROOT = html.dataset.root || './';
@@ -32,7 +31,6 @@ for (const a of document.querySelectorAll('[data-wa]')) {
   a.target = '_blank'; a.rel = 'noopener';
 }
 for (const a of document.querySelectorAll('[data-reviews]')) { a.href = CLINIC.reviewsUrl; a.target = '_blank'; a.rel = 'noopener'; }
-initNavMenu();
 
 const bot = createBot();
 document.addEventListener('click', (e) => {

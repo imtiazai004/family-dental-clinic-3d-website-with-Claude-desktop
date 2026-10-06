@@ -853,3 +853,61 @@ export const TREATMENTS = [
     related: ['denture', 'implant', 'crown'],
   },
 ];
+
+// The treatments page (treatments/index.html): the "front door" that lists all ten treatments.
+// Items marked confirm: true need the clinic's confirmation before launch.
+export const HUB = {
+  seoTitle: 'Dental treatments in Peshawar | Family Dental & Aesthetic Clinic',
+  description: 'All ten treatments at Family Dental & Aesthetic Clinic, Nasir Bagh Road, Peshawar: implants, root canal, braces, crowns, veneers, whitening, fillings, extraction and dentures, each shown step by step in 3D.',
+  eyebrow: 'Ten treatments, one clinic',
+  title: 'Our treatments',
+  lead: "From a child's first filling to dentures for grandparents, every treatment is planned and carried out by Dr. Tabassum Ajmal. Open one to see how it works, step by step in 3D, or tell us what is wrong and we will help you choose.",
+  gridTitle: 'Find your treatment',
+  gridText: 'Each page shows the treatment step by step in 3D, the types on offer, who it suits, aftercare and common questions.',
+  helper: {
+    title: 'Not sure which one you need?',
+    text: 'Tell us what is going on and we will show the treatments that usually help. The dentist confirms the right one at your check-up.',
+    options: [
+      { group: 'pain', label: 'Something hurts or is broken', hint: 'Fillings, root canal treatment, crowns or an extraction' },
+      { group: 'missing', label: 'A tooth is missing', hint: 'Implants or dentures' },
+      { group: 'smile', label: 'I want a nicer smile', hint: 'Whitening, veneers or braces' },
+    ],
+  },
+  why: [
+    { big: '5.0', label: 'on Google, from 93 reviews' },
+    { big: 'Dr. Tabassum Ajmal', label: 'Dentist and prosthodontist' },
+    { big: 'Every age', label: 'From first check-ups to dentures' },
+    { big: 'Costs first', label: 'Explained before any treatment starts' },
+  ],
+  safety: {
+    title: 'Your safety comes first',
+    text: 'Careful, clean care at every visit, for every patient.',
+    confirm: true,
+    items: [
+      { icon: 'steam', title: 'Sterilised instruments', text: 'Reusable instruments are cleaned and sterilised in an autoclave before each patient.' },
+      { icon: 'glove', title: 'Single-use where possible', text: 'Needles, gloves, masks, cups and suction tips are used once, then thrown away.' },
+      { icon: 'spark', title: 'Clean surfaces', text: 'The dental chair and work surfaces are disinfected between patients.' },
+      { icon: 'shield', title: 'Protective wear', text: 'The dentist and assistant wear gloves, masks and eye protection.' },
+    ],
+  },
+  faq: [
+    { q: 'How do I know which treatment I need?', a: 'Book a check-up. The dentist examines your teeth, takes an X-ray if needed, and explains your options before anything starts.' },
+    { fromHome: 'Why are prices not listed on the website?' },
+    { fromHome: 'Do you treat children?' },
+    { fromHome: 'How do I book an appointment?' },
+    { fromHome: 'What are your timings?' },
+  ],
+  // The two moments of each treatment's 3D story shown on its card (story progress 0..1), and framing.
+  thumbs: {
+    implant: { a: 0.84, b: 0.43, zoom: 0.92, y: -0.1 },
+    rct: { a: 0.53, b: 0.8, zoom: 1.2 },
+    braces: { a: 0.37, b: 0.58, zoom: 1.1, y: -0.05 },
+    crown: { a: 0.815, b: 0.68, zoom: 1.4, y: -0.05 },
+    veneer: { a: 0.76, b: 0.63, zoom: 1.2 },
+    whitening: { a: 0.585, b: 0.79, zoom: 1.25 },
+    filling: { a: 0.643, b: 0.1, zoom: 1.1, y: -0.22 },
+    extraction: { a: 0.56, b: 0.93, zoom: 0.95, y: -0.2 },
+    denture: { a: 0.8, b: 0.4, zoom: 1.3 },
+    partial: { a: 0.78, b: 0.47, zoom: 1.05 },
+  },
+};

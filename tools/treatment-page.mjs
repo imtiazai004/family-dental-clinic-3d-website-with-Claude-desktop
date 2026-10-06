@@ -14,37 +14,26 @@ export function linker(depth, explicit = false) {
     root: depth ? up : './',
     home: (hash = '') => (depth ? `${up}${file}${hash}` : hash || `./${file}`),
     page: (slug) => `${up}treatments/${slug}/${file}`,
+    hub: () => `${up}treatments/${file}`,
   };
 }
 
-const CHEVRON = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-
-// "Treatments" dropdown for the header, grouped by what the patient is dealing with.
-export function navMenu(L, current = null) {
-  const cols = Object.entries(TX_GROUPS).map(([g, label]) => {
-    const items = TREATMENTS.filter((t) => t.group === g);
-    if (!items.length) return '';
-    return `
-          <div class="nav-menu-col">
-            <p class="nav-menu-h">${esc(label)}</p>
-            ${items.map((t) => `<a class="nav-tx" href="${L.page(t.slug)}"${t.id === current ? ' aria-current="page"' : ''}><b>${esc(t.name)}</b><span>${esc(t.tagline)}</span></a>`).join('\n            ')}
-          </div>`;
-  }).join('');
-  return `<div class="nav-dd">
-      <button class="nav-dd-btn" type="button" aria-expanded="false" aria-controls="tx-menu">Treatments ${CHEVRON}</button>
-      <div class="nav-menu" id="tx-menu">
-        <div class="nav-menu-cols">${cols}
-        </div>
-        <a class="nav-menu-all" href="${L.home('#treatments')}">All ten treatments</a>
-      </div>
-    </div>`;
+// "Treatments" in the header: a plain link to the treatments page (treatments/), which lists all ten.
+// state: 'hub' on the treatments page itself, 'tx' on a treatment's own page, '' elsewhere.
+export function navTx(L, state = '') {
+  const cur = state === 'hub' ? ' aria-current="page"' : state === 'tx' ? ' class="is-active"' : '';
+  return `<a href="${L.hub()}"${cur}>Treatments</a>`;
+}
+// The same link for phones and small screens, where the header's section links are hidden.
+export function topTx(L, state = '') {
+  return `<a class="top-tx${state ? ' is-active' : ''}" href="${L.hub()}"${state === 'hub' ? ' aria-current="page"' : ''}>Treatments</a>`;
 }
 
 const svc = (id) => SERVICES.find((s) => s.id === id);
 const txById = (id) => TREATMENTS.find((t) => t.id === id);
 const shortName = (t) => t.name.replace(/^Dental /, '').toLowerCase();
 
-const HEAD = (title, desc) => `<meta charset="utf-8">
+export const HEAD = (title, desc) => `<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
@@ -57,7 +46,7 @@ const HEAD = (title, desc) => `<meta charset="utf-8">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Onest:wght@400;500;600&display=swap">`;
 
-const BRAND = `<svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 3.5c-2.4 0-4 1.9-4 4.6 0 2.2.9 3.6 1.6 5 .8 1.6.9 3.2 1.3 5 .3 1.5.9 2.4 1.8 2.4 1.1 0 1.4-1.3 1.7-3 .3-1.6.8-2.9 2.1-2.9s1.8 1.3 2.1 2.9c.3 1.7.6 3 1.7 3 .9 0 1.5-.9 1.8-2.4.4-1.8.5-3.4 1.3-5 .7-1.4 1.6-2.8 1.6-5 0-2.7-1.6-4.6-4-4.6-1.8 0-2.7 1-4.5 1s-2.7-1-4.5-1z"/></svg>
+export const BRAND = `<svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 3.5c-2.4 0-4 1.9-4 4.6 0 2.2.9 3.6 1.6 5 .8 1.6.9 3.2 1.3 5 .3 1.5.9 2.4 1.8 2.4 1.1 0 1.4-1.3 1.7-3 .3-1.6.8-2.9 2.1-2.9s1.8 1.3 2.1 2.9c.3 1.7.6 3 1.7 3 .9 0 1.5-.9 1.8-2.4.4-1.8.5-3.4 1.3-5 .7-1.4 1.6-2.8 1.6-5 0-2.7-1.6-4.6-4-4.6-1.8 0-2.7 1-4.5 1s-2.7-1-4.5-1z"/></svg>
     <span class="brand-text"><span class="brand-name">Family Dental</span><span class="brand-sub">&amp; Aesthetic Clinic</span></span>`;
 
 // A type card whose 3D model comes apart when opened (see src/ui/explode-cards.js).
@@ -173,12 +162,13 @@ ${HEAD(t.seoTitle, t.description)}
     ${BRAND}
   </a>
   <nav class="nav" aria-label="Main">
-    ${navMenu(L, t.id)}
+    ${navTx(L, 'tx')}
     <a href="#how">How it works</a>
     <a href="#questions">Questions</a>
     <a href="#dentist">Your dentist</a>
     <a href="${L.home('#visit')}">Visit</a>
   </nav>
+  ${topTx(L, 'tx')}
   <button class="btn btn-primary btn-sm" type="button" data-book="${esc(t.id)}">Book a visit</button>
 </header>
 
@@ -191,7 +181,7 @@ ${HEAD(t.seoTitle, t.description)}
       <nav class="crumbs" aria-label="Breadcrumb">
         <ol>
           <li><a href="${L.home()}">Home</a></li>
-          <li><a href="${L.home('#treatments')}">Treatments</a></li>
+          <li><a href="${L.hub()}">Treatments</a></li>
           <li aria-current="page">${esc(t.name)}</li>
         </ol>
       </nav>
@@ -274,7 +264,7 @@ ${quote}
     <div class="wrap">
       <div class="section-head">
         <h2 id="rel-h">Related treatments</h2>
-        <p><a class="link" href="${L.home('#treatments')}">See all ten treatments</a></p>
+        <p><a class="link" href="${L.hub()}">See all ten treatments</a></p>
       </div>
       <ul class="tx-rels">${related}</ul>
     </div>

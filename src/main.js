@@ -8,7 +8,6 @@ import { buildScenes, seg, clamp, ease } from './three/scenes.js';
 import { createBot } from './ui/bot.js';
 import { createLabels } from './ui/labels.js';
 import { createJourneyMedia } from './ui/journey.js';
-import { initNavMenu } from './ui/nav.js';
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const html = document.documentElement;
@@ -57,7 +56,6 @@ if (dial) {
 }
 
 const journeyMedia = createJourneyMedia({ reduce });
-initNavMenu();
 
 // Before/after sliders.
 for (const r of document.querySelectorAll('.ba-range')) {

@@ -2,7 +2,8 @@ import { defineConfig } from 'vite';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { TREATMENTS } from './src/treatments.js';
-import { renderTreatmentPage, navMenu, linker } from './tools/treatment-page.mjs';
+import { renderTreatmentPage, navTx, topTx, linker } from './tools/treatment-page.mjs';
+import { renderHubPage } from './tools/treatment-hub.mjs';
 
 // LINKS_EXPLICIT=1 writes index.html into page links, for hosts that don't serve folder indexes.
 const EXPLICIT = !!process.env.LINKS_EXPLICIT;
@@ -16,6 +17,9 @@ function writeTreatmentPages() {
     writeFileSync(resolve(dir, 'index.html'), renderTreatmentPage(t, { explicit: EXPLICIT }));
     inputs[t.slug] = resolve(dir, 'index.html');
   }
+  // The treatments page that lists them all.
+  writeFileSync(resolve('treatments', 'index.html'), renderHubPage({ explicit: EXPLICIT }));
+  inputs.treatments = resolve('treatments', 'index.html');
   return inputs;
 }
 const PAGES = writeTreatmentPages();
@@ -160,7 +164,9 @@ function staticContent() {
         .replace('<!--GENERATIONS-->', gens)
         .replace('<!--JOURNEY-->', journey)
         .replace('<!--JOURNEY_MEDIA-->', journeyMedia)
-        .replace('<!--NAV_TX-->', navMenu(HOME))
+        .replace('<!--NAV_TX-->', navTx(HOME))
+        .replace('<!--TOP_TX-->', topTx(HOME))
+        .replace('<!--HUB_LINK-->', `<a class="btn btn-ghost" href="${HOME.hub()}">Explore all ten treatments</a>`)
         .replace(/<!--TXLINK:(\w+):([^>]*?)-->/g, (m, id, label) => {
           const pg = pageOf(id);
           return pg ? `<a class="copy-more" href="${HOME.page(pg.slug)}">${esc(label)}</a>` : '';
