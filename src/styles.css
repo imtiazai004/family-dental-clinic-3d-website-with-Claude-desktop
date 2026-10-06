@@ -227,7 +227,8 @@ address { font-style: normal; font-size: 1.25rem; line-height: 1.5; margin-top: 
 
 /* ---------------------------------------------------------------- first visit journey */
 .journey-stage { gap: clamp(2rem, 5vw, 4rem); }
-.dial { position: relative; flex: 1; min-width: 0; max-width: min(34rem, 62vh); margin-left: auto; }
+/* The wheel fills the space beside the copy, limited by the screen height so it never runs off screen. */
+.dial { position: relative; flex: 1; min-width: 0; max-width: min(62rem, calc((100vh - 130px) * 1.04)); margin-inline: auto; }
 .dial > svg { position: relative; width: 100%; height: auto; overflow: visible; pointer-events: none; }
 .dial .rings path { fill: none; stroke: var(--line); stroke-width: 1; }
 .dial .frame-line { fill: none; stroke: var(--line-2); stroke-width: 1; }
@@ -263,7 +264,7 @@ address { font-style: normal; font-size: 1.25rem; line-height: 1.5; margin-top: 
 .jm-sound[aria-pressed="true"] .on { display: inline; }
 
 /* Step 1: example booking conversation, website assistant then WhatsApp. */
-.demo { position: absolute; inset: 0; font: 500 clamp(9px, 3.9cqw, 13px)/1.35 var(--body); color: var(--ink); }
+.demo { position: absolute; inset: 0; font: 500 clamp(9px, 3.6cqw, 17px)/1.35 var(--body); color: var(--ink); }
 .demo-scene { position: absolute; inset: 0; display: flex; flex-direction: column; opacity: 0; transition: opacity 0.5s ease; }
 .demo-scene.on { opacity: 1; }
 .demo-head { flex: none; padding: 15% 12% 0.7em; display: flex; flex-direction: column; align-items: center; gap: 0.2em; text-align: center; }
