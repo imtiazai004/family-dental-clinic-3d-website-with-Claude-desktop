@@ -76,7 +76,7 @@ export function frontTeeth(kit, mat, count = 4) {
     m.scale.set(sc, sc * (s.sy || 1), sc);
     slot.add(m);
     g.add(slot);
-    teeth.push({ slot, mesh: m, w: s.w, sc, sy: s.sy || 1 });
+    teeth.push({ slot, mesh: m, name: s.name, w: s.w, sc, sy: s.sy || 1 });
   }
   // A strip of gum along the tops of the teeth, so they read as teeth in a mouth.
   if (kit.M.archGum) {

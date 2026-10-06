@@ -89,6 +89,7 @@ p { margin: 0; }
   font: 500 0.82rem/1 var(--body); color: var(--ink);
   will-change: transform, opacity;
 }
+.lbl.flip { flex-direction: row-reverse; }
 .lbl i { width: 9px; height: 9px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 4px rgba(245, 239, 230, 0.18); flex: none; }
 .lbl b { font-weight: 500; padding: 0.42em 0.75em; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 html.no-gl #gl, html.no-gl #labels, html.no-gl .hero-loader { display: none; }
