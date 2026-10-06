@@ -28,11 +28,30 @@ export const REVIEWS = [
   },
 ];
 
+// First-visit steps. media: drop the file into public/media/ with this name and rebuild;
+// until it exists, a drawn illustration is shown in its place.
 export const JOURNEY = [
-  { title: 'Book on WhatsApp', text: 'Message the clinic or use the booking assistant on this page. The clinic replies to confirm a time that suits you.' },
-  { title: 'Your check-up', text: 'The dentist examines your teeth and gums and listens to what is bothering you. If an X-ray is needed, you will be told why.' },
-  { title: 'Your plan, explained', text: 'You hear what the problem is, the options to fix it, how long each takes and what it costs, before anything starts.' },
-  { title: 'Treatment and follow-up', text: 'Treatment goes at a pace you are comfortable with, and the clinic checks that everything has settled afterwards.' },
+  {
+    title: 'Book online or on WhatsApp',
+    text: 'Pick a treatment, day and time with the booking assistant on this page, or message the clinic on WhatsApp. The clinic replies to confirm your time.',
+    cta: true,
+    media: { demo: 'booking' },
+  },
+  {
+    title: 'Your check-up',
+    text: 'The dentist examines your teeth and gums and listens to what is bothering you. If an X-ray is needed, you will be told why.',
+    media: { video: 'media/journey-2-checkup.mp4', poster: 'media/journey-2-checkup.jpg', alt: 'Dr. Tabassum Ajmal at the clinic' },
+  },
+  {
+    title: 'Your plan, explained',
+    text: 'You hear what the problem is, the options to fix it, how long each takes and what it costs, before anything starts.',
+    media: { image: 'media/journey-3-plan.jpg', alt: 'The dentist explaining an X-ray to a patient' },
+  },
+  {
+    title: 'Treatment and follow-up',
+    text: 'Treatment goes at a pace you are comfortable with, and the clinic checks that everything has settled afterwards.',
+    media: { image: 'media/journey-4-treatment.jpg', alt: 'A patient relaxed in the dental chair' },
+  },
 ];
 
 // Visual style of the 3D: 'gloss' (bright, glossy, ad-style) or 'natural' (anatomical, v3).

@@ -18,7 +18,7 @@ const shots = [
   ['rct1', 'rct', 0.12], ['rct2', 'rct', 0.38], ['rct3', 'rct', 0.68],
   ['crown', 'restore', 0.3], ['veneer', 'restore', 0.9],
   ['braces', 'studio', 0.12], ['white', 'studio', 0.55], ['denture', 'studio', 0.95],
-  ['promise', 'promise', 0.6], ['dentist', 'dentist', 0], ['journey1', 'first-visit', 0.1], ['journey3', 'first-visit', 0.6],
+  ['promise', 'promise', 0.6], ['dentist', 'dentist', 0], ['journey1', 'first-visit', 0.1], ['journey2', 'first-visit', 0.35], ['journey3', 'first-visit', 0.6], ['journey4', 'first-visit', 0.9],
   ['treat', 'treatments', -0.05], ['reviews', 'reviews', 0], ['faq', 'faq', 0], ['visit', 'visit', 0],
 ];
 for (const [name, id, f] of shots) {

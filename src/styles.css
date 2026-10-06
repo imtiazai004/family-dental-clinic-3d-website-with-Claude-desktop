@@ -227,9 +227,10 @@ address { font-style: normal; font-size: 1.25rem; line-height: 1.5; margin-top: 
 
 /* ---------------------------------------------------------------- first visit journey */
 .journey-stage { gap: clamp(2rem, 5vw, 4rem); }
-.dial { flex: 1; min-width: 0; max-width: 34rem; margin-left: auto; }
-.dial svg { width: 100%; height: auto; overflow: visible; }
+.dial { position: relative; flex: 1; min-width: 0; max-width: min(34rem, 62vh); margin-left: auto; }
+.dial > svg { position: relative; width: 100%; height: auto; overflow: visible; pointer-events: none; }
 .dial .rings path { fill: none; stroke: var(--line); stroke-width: 1; }
+.dial .frame-line { fill: none; stroke: var(--line-2); stroke-width: 1; }
 .dial .track { fill: none; stroke: var(--line-2); stroke-width: 2; }
 .dial .progress { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; }
 .dial .node circle { fill: var(--bg); stroke: var(--line-2); stroke-width: 1.5; transition: fill 0.3s, stroke 0.3s; }
@@ -238,6 +239,60 @@ address { font-style: normal; font-size: 1.25rem; line-height: 1.5; margin-top: 
 .dial .node.on text { fill: var(--accent-ink); }
 .dial .node.done circle { stroke: var(--accent); }
 .dial .dot { fill: var(--accent); }
+
+/* Arch-shaped frame inside the wheel, one item per step. Matches the frame-line path in the SVG. */
+.jm-frame {
+  position: absolute; left: 18.75%; width: 62.5%; top: 22.08%; height: 74.03%;
+  border-radius: 50% 50% 4% 4% / 43.86% 43.86% 3.5% 3.5%;
+  overflow: hidden; isolation: isolate; container-type: inline-size;
+  background: radial-gradient(130% 75% at 50% 0%, #41205a, var(--surface) 62%, var(--bg-2));
+  box-shadow: inset 0 0 0 1px rgba(247, 242, 234, 0.08);
+}
+.jm { position: absolute; inset: 0; opacity: 0; transform: scale(1.04); transition: opacity 0.6s ease, transform 0.9s ease; pointer-events: none; }
+.jm.on { opacity: 1; transform: none; pointer-events: auto; }
+.jm img, .jm video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.jm-art { position: absolute; left: 50%; top: 56%; width: 54%; transform: translate(-50%, -50%); fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.jm-art .soft { stroke: var(--lavender); opacity: 0.85; }
+.jm-sound {
+  position: absolute; right: 9%; bottom: 6%; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+  color: #fff; background: rgba(25, 12, 33, 0.55); border: 1px solid rgba(255, 255, 255, 0.35); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+.jm-sound svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.jm-sound svg path:first-child { fill: currentColor; }
+.jm-sound .on, .jm-sound[aria-pressed="true"] .off { display: none; }
+.jm-sound[aria-pressed="true"] .on { display: inline; }
+
+/* Step 1: example booking conversation, website assistant then WhatsApp. */
+.demo { position: absolute; inset: 0; font: 500 clamp(9px, 3.9cqw, 13px)/1.35 var(--body); color: var(--ink); }
+.demo-scene { position: absolute; inset: 0; display: flex; flex-direction: column; opacity: 0; transition: opacity 0.5s ease; }
+.demo-scene.on { opacity: 1; }
+.demo-head { flex: none; padding: 15% 12% 0.7em; display: flex; flex-direction: column; align-items: center; gap: 0.2em; text-align: center; }
+.demo-head b { font-weight: 600; font-size: 1.05em; }
+.demo-head small { font-size: 0.8em; color: var(--ink-3); }
+.demo-av { width: 2.6em; height: 2.6em; border-radius: 50%; display: grid; place-items: center; background: var(--accent); margin-bottom: 0.2em; }
+.demo-av svg { width: 58%; height: 58%; fill: var(--accent-ink); }
+.demo-wa .demo-av { background: #25d366; }
+.demo-wa .demo-av svg { fill: #fff; }
+.demo-log {
+  flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 0.45em; padding: 0 8% 14%;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 16%); mask-image: linear-gradient(to bottom, transparent, #000 16%);
+}
+.demo .b { margin: 0; max-width: 84%; padding: 0.5em 0.8em; border-radius: 1em; display: none; }
+.demo .b.in { display: block; animation: demo-in 0.35s ease both; }
+.demo .b.them { align-self: flex-start; background: rgba(247, 242, 234, 0.1); border-bottom-left-radius: 0.3em; }
+.demo .b.me { align-self: flex-end; background: var(--accent); color: var(--accent-ink); border-bottom-right-radius: 0.3em; }
+.demo-wa .b.me { background: #1f7a52; color: #fff; }
+.demo .b.chips { padding: 0; background: none; max-width: 100%; flex-wrap: wrap; gap: 0.35em; }
+.demo .b.chips.in { display: flex; }
+.demo .b.chips span { padding: 0.3em 0.7em; border: 1px solid var(--line-2); border-radius: 999px; font-size: 0.92em; transition: background 0.3s, color 0.3s, border-color 0.3s; }
+.demo .b.chips.picked .pick { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.demo .b.send { align-self: center; background: #25d366; color: #0b2a18; font-weight: 600; padding: 0.55em 1.1em; border-radius: 999px; }
+.demo .b.send.tap { animation: demo-tap 0.5s ease; }
+.demo-tag { position: absolute; left: 50%; bottom: 4.5%; transform: translateX(-50%); margin: 0; font-size: 0.72em; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+@keyframes demo-in { from { opacity: 0; transform: translateY(8px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes demo-tap { 50% { transform: scale(0.9); } }
+.step-cta { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.3rem; }
+.step .step-cta .btn { margin-top: 0; }
 
 /* ---------------------------------------------------------------- quote, faq, cases */
 .proof-right { display: grid; gap: 2.4rem; }
@@ -353,7 +408,7 @@ address { font-style: normal; font-size: 1.25rem; line-height: 1.5; margin-top: 
   .monogram { max-width: 13rem; }
   .faq-intro { position: static; }
   .journey-stage { flex-direction: column-reverse; justify-content: space-between; align-items: stretch; }
-  .journey-stage .dial { margin: calc(env(safe-area-inset-top, 0px) + 90px) auto 0; width: 82%; flex: none; }
+  .journey-stage .dial { margin: calc(env(safe-area-inset-top, 0px) + 70px) auto 0; width: clamp(200px, calc(100svh - 500px), 100%); max-width: none; flex: none; }
   .brand-mark { width: 26px; height: 26px; }
   .section-head p { justify-self: start; }
   .tx-list { grid-template-columns: 1fr; }

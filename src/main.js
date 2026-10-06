@@ -7,6 +7,7 @@ import { createStage, computeLayout, detectTier } from './three/stage.js';
 import { buildScenes, seg, clamp, ease } from './three/scenes.js';
 import { createBot } from './ui/bot.js';
 import { createLabels } from './ui/labels.js';
+import { createJourneyMedia } from './ui/journey.js';
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const html = document.documentElement;
@@ -34,7 +35,7 @@ if (kinetic) {
 }
 
 // First-visit dial: four nodes on a half circle, a gold arc that follows scroll.
-const dial = document.querySelector('.dial svg');
+const dial = document.querySelector('.dial > svg');
 let dialArc = null, dialLen = 0, dialNodes = [];
 if (dial) {
   dialArc = dial.querySelector('.progress');
@@ -53,6 +54,8 @@ if (dial) {
     dialNodes.push(node);
   }
 }
+
+const journeyMedia = createJourneyMedia({ reduce });
 
 // Before/after sliders.
 for (const r of document.querySelectorAll('.ba-range')) {
@@ -143,6 +146,7 @@ function updateCopy() {
       nd.classList.toggle('on', i === active);
       nd.classList.toggle('done', i < active);
     });
+    journeyMedia.update(Math.max(0, active), CH.journey.presence > 0.2);
   }
   const G = CH.generations;
   if (G && genTrack) {
