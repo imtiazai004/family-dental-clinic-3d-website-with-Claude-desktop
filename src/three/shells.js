@@ -5,56 +5,53 @@ import * as THREE from 'three';
 // outline, so the shell has clean, smooth edges. Results are cached per tooth model and direction.
 const cache = new Map();
 
-// Front surface of a tooth model as a grid of points (cached; the slow part).
-function sampleFront(kit, name, fwd, rows, cols, y0) {
-  const key = `${name}|${fwd.toArray().map((v) => v.toFixed(3))}|${rows}|${cols}|${y0}`;
-  if (cache.has(key)) return cache.get(key);
-  const node = kit.src(name).clone();
-  const wrap = new THREE.Group();
-  wrap.add(node);
-  wrap.updateMatrixWorld(true);
-  const up = new THREE.Vector3(0, 1, 0);
+// Casts parallel rays (along -fwd) at an object, fast: its triangles are bucketed by where they fall
+// on the (right, up) plane. hit(u, v) returns the nearest surface point (object space) or null.
+export function projector(obj, fwd, up = new THREE.Vector3(0, 1, 0)) {
+  obj.updateMatrixWorld(true);
+  const inv = obj.matrixWorld.clone().invert();
   const right = up.clone().cross(fwd).normalize();
-
-  // All triangles, bucketed by where they fall on the (right, up) plane, since every ray is parallel.
   const tri = [];
   const v = new THREE.Vector3();
-  wrap.traverse((m) => {
+  const m4 = new THREE.Matrix4();
+  obj.traverse((m) => {
     if (!m.isMesh) return;
+    m4.multiplyMatrices(inv, m.matrixWorld);
     const pos = m.geometry.attributes.position;
     const idx = m.geometry.index;
     const n = idx ? idx.count : pos.count;
     for (let i = 0; i < n; i++) {
-      v.fromBufferAttribute(pos, idx ? idx.getX(i) : i).applyMatrix4(m.matrixWorld);
+      v.fromBufferAttribute(pos, idx ? idx.getX(i) : i).applyMatrix4(m4);
       tri.push(v.x, v.y, v.z);
     }
   });
   const T = tri.length / 9;
-  let umin = Infinity, umax = -Infinity, ymin = Infinity, ymax = -Infinity;
   const U = (i) => tri[i] * right.x + tri[i + 1] * right.y + tri[i + 2] * right.z;
+  const W = (i) => tri[i] * up.x + tri[i + 1] * up.y + tri[i + 2] * up.z;
+  let umin = Infinity, umax = -Infinity, vmin = Infinity, vmax = -Infinity;
   for (let i = 0; i < tri.length; i += 3) {
-    const u = U(i), y = tri[i + 1];
-    umin = Math.min(umin, u); umax = Math.max(umax, u); ymin = Math.min(ymin, y); ymax = Math.max(ymax, y);
+    const u = U(i), w = W(i);
+    umin = Math.min(umin, u); umax = Math.max(umax, u); vmin = Math.min(vmin, w); vmax = Math.max(vmax, w);
   }
   const G = 40;
   const cu = (u) => Math.min(G - 1, Math.max(0, Math.floor(((u - umin) / (umax - umin)) * G)));
-  const cy = (y) => Math.min(G - 1, Math.max(0, Math.floor(((y - ymin) / (ymax - ymin)) * G)));
+  const cv = (w) => Math.min(G - 1, Math.max(0, Math.floor(((w - vmin) / (vmax - vmin)) * G)));
   const cells = Array.from({ length: G * G }, () => []);
   for (let t = 0; t < T; t++) {
     const i = t * 9;
-    const us = [U(i), U(i + 3), U(i + 6)], ys = [tri[i + 1], tri[i + 4], tri[i + 7]];
+    const us = [U(i), U(i + 3), U(i + 6)], ws = [W(i), W(i + 3), W(i + 6)];
     for (let a = cu(Math.min(...us)); a <= cu(Math.max(...us)); a++) {
-      for (let b = cy(Math.min(...ys)); b <= cy(Math.max(...ys)); b++) cells[b * G + a].push(i);
+      for (let b = cv(Math.min(...ws)); b <= cv(Math.max(...ws)); b++) cells[b * G + a].push(i);
     }
   }
-  const reach = Math.max(umax - umin, ymax - ymin) + 2;
+  const reach = Math.max(umax - umin, vmax - vmin) + 4;
   const ray = new THREE.Ray(new THREE.Vector3(), fwd.clone().negate());
   const A = new THREE.Vector3(), B = new THREE.Vector3(), C = new THREE.Vector3(), out = new THREE.Vector3();
-  const hit = (u, y) => {
-    if (u < umin || u > umax || y < ymin || y > ymax) return null;
-    ray.origin.copy(right).multiplyScalar(u).addScaledVector(up, y).addScaledVector(fwd, reach);
+  const hit = (u, w) => {
+    if (u < umin || u > umax || w < vmin || w > vmax) return null;
+    ray.origin.copy(right).multiplyScalar(u).addScaledVector(up, w).addScaledVector(fwd, reach);
     let best = null, bestD = Infinity;
-    for (const i of cells[cy(y) * G + cu(u)]) {
+    for (const i of cells[cv(w) * G + cu(u)]) {
       A.fromArray(tri, i); B.fromArray(tri, i + 3); C.fromArray(tri, i + 6);
       if (ray.intersectTriangle(A, B, C, false, out)) {
         const d = out.distanceToSquared(ray.origin);
@@ -63,6 +60,50 @@ function sampleFront(kit, name, fwd, rows, cols, y0) {
     }
     return best;
   };
+  return { hit, right, up, umin, umax, vmin, vmax };
+}
+
+// A small patch that lies on top of an object (rays cast straight down), centred on (cx, cz), radius r.
+// Has uv (0..1 across the patch) for a round texture. Built in the object's own space.
+export function surfaceDecal(obj, cx, cz, r, { n = 26, lift = 0.006 } = {}) {
+  const P = projector(obj, new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, -1));
+  const pos = [], uv = [];
+  let last = null;
+  for (let j = 0; j < n; j++) {
+    for (let i = 0; i < n; i++) {
+      const x = cx - r + (2 * r * i) / (n - 1), z = cz - r + (2 * r * j) / (n - 1);
+      const h = P.hit(x, -z) || last || new THREE.Vector3(x, 0, z);
+      last = h;
+      pos.push(h.x, h.y + lift, h.z);
+      uv.push(i / (n - 1), 1 - j / (n - 1));
+    }
+  }
+  const index = [];
+  for (let j = 0; j < n - 1; j++) {
+    for (let i = 0; i < n - 1; i++) {
+      const a = j * n + i, b = a + 1, c = a + n, d = c + 1;
+      index.push(a, c, b, b, c, d);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  geo.setIndex(index);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+// Front surface of a tooth model as a grid of points (cached; the slow part).
+function sampleFront(kit, name, fwd, rows, cols, y0) {
+  const key = `${name}|${fwd.toArray().map((v) => v.toFixed(3))}|${rows}|${cols}|${y0}`;
+  if (cache.has(key)) return cache.get(key);
+  const node = kit.src(name).clone();
+  const wrap = new THREE.Group();
+  wrap.add(node);
+  const up = new THREE.Vector3(0, 1, 0);
+  const right = up.clone().cross(fwd).normalize();
+  const { hit: hit0, umin, umax, vmin: ymin, vmax: ymax } = projector(wrap, fwd, up);
+  const hit = (u, y) => hit0(u, y);
   // Where the tooth is, across one row: first and last hit, refined by halving the gap.
   const span = (y) => {
     const n = 24, W0 = umin - 0.01, W1 = umax + 0.01, step = (W1 - W0) / n;

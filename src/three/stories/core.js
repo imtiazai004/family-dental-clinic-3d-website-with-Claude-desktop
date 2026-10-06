@@ -144,6 +144,70 @@ export function onSurface(obj, pts, lift = 0.006) {
   return out;
 }
 
+// A round texture drawn on a canvas (decay spots, a cleaned cavity, a socket opening).
+export function canvasTexture(draw, size = 256) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  draw(c.getContext('2d'), size);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+// Small seeded random numbers, so drawn textures look the same on every visit.
+export function seeded(seed = 3) {
+  let s = seed;
+  return () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+}
+
+// Decay: an uneven brown-black spot that fades out at its edge.
+export function decayTexture(seed = 5) {
+  return canvasTexture((g, n) => {
+    const r = seeded(seed);
+    for (let i = 0; i < 9; i++) {
+      const x = n / 2 + (r() - 0.5) * n * 0.32, y = n / 2 + (r() - 0.5) * n * 0.32, rad = n * (0.16 + r() * 0.16);
+      const gr = g.createRadialGradient(x, y, 0, x, y, rad);
+      gr.addColorStop(0, 'rgba(46, 26, 14, 0.9)');
+      gr.addColorStop(0.55, 'rgba(92, 58, 32, 0.55)');
+      gr.addColorStop(1, 'rgba(140, 100, 60, 0)');
+      g.fillStyle = gr;
+      g.fillRect(0, 0, n, n);
+    }
+  });
+}
+
+// A cleaned, shaped cavity: light dentin inside, shaded towards a darker rim, as if it were a hollow.
+export function cavityTexture() {
+  return canvasTexture((g, n) => {
+    const c = n / 2;
+    const gr = g.createRadialGradient(c, c * 0.92, 0, c, c, c * 0.62);
+    gr.addColorStop(0, 'rgba(240, 222, 190, 1)');
+    gr.addColorStop(0.7, 'rgba(214, 186, 145, 1)');
+    gr.addColorStop(0.9, 'rgba(150, 112, 78, 1)');
+    gr.addColorStop(1, 'rgba(120, 88, 60, 0)');
+    g.fillStyle = gr;
+    g.beginPath();
+    g.ellipse(c, c, c * 0.62, c * 0.55, 0, 0, Math.PI * 2);
+    g.fill();
+  });
+}
+
+// A material whose surface is revealed from the middle of its uv square outwards: uGrow 0..1.
+export function growMaterial(mat) {
+  const u = { value: 0 };
+  mat.userData.grow = u;
+  mat.onBeforeCompile = (sh) => {
+    sh.uniforms.uGrow = u;
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec2 vGrowUv;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvGrowUv = uv;');
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform float uGrow; varying vec2 vGrowUv;')
+      .replace('void main() {', 'void main() {\n  vec2 gq = (vGrowUv - 0.5) * vec2(2.0, 2.2);\n  if (length(gq) > uGrow * 0.64) discard;');
+  };
+  return mat;
+}
+
 export function enableShadows(group) {
   group.traverse((o) => { if (o.isMesh && !o.material.transparent) { o.castShadow = true; o.receiveShadow = true; } });
 }

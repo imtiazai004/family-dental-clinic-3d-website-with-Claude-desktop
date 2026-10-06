@@ -6,8 +6,8 @@ export const STORIES = {
   crown: () => import('./crown.js'),
   veneer: () => import('./veneer.js'),
   whitening: () => import('./whitening.js'),
-  // filling: () => import('./filling.js'),
-  // extraction: () => import('./extraction.js'),
+  filling: () => import('./filling.js'),
+  extraction: () => import('./extraction.js'),
   // denture: () => import('./denture.js'),
   // partial: () => import('./partial.js'),
 };

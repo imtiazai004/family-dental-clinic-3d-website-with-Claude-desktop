@@ -47,6 +47,7 @@ export function initExplodeCards({ gltf, look, tier, tune, lenis, reduce }) {
     m.pivot.rotation.set(m.view.rx, m.view.ry, 0);
     m.explode(k);
     m.fit(stage.view.visH, stage.view.visW, 0.86);
+    m.beforeRender?.();
     stage.renderer.render(stage.scene, stage.camera);
     return canvas.toDataURL('image/webp', 0.9);
   }
@@ -113,6 +114,7 @@ export function initExplodeCards({ gltf, look, tier, tune, lenis, reduce }) {
     }
     m.explode(k);
     m.pivot.rotation.set(m.view.rx + rot.x, m.view.ry + rot.y, 0);
+    m.beforeRender?.();
     stage.renderer.render(stage.scene, stage.camera);
     // labels
     const show = clamp((k - 0.75) / 0.25);

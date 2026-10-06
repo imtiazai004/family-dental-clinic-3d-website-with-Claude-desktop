@@ -7,6 +7,7 @@ export function makeModel(view = { rx: 0.18, ry: -0.5 }) {
   const pivot = new THREE.Group();
   root.add(pivot);
   const parts = [];
+  const planes = [];
   const box = new THREE.Box3();
   const c = new THREE.Vector3();
   const model = {
@@ -38,6 +39,19 @@ export function makeModel(view = { rx: 0.18, ry: -0.5 }) {
     labelPoint(i, out) {
       const p = parts[i];
       return (p.anchorObj || p.obj).localToWorld(out.copy(p.anchor || new THREE.Vector3()));
+    },
+    // Clipping planes that move with a piece (for cut-away views): defined in that piece's own space,
+    // kept in world space before every render.
+    plane(group, nx, ny, nz, c) {
+      const local = new THREE.Plane(new THREE.Vector3(nx, ny, nz), c);
+      const plane = local.clone();
+      planes.push({ local, plane, group });
+      return plane;
+    },
+    beforeRender() {
+      if (!planes.length) return;
+      root.updateMatrixWorld(true);
+      for (const p of planes) p.plane.copy(p.local).applyMatrix4(p.group.matrixWorld);
     },
     finish() {
       pivot.rotation.set(view.rx, view.ry, 0);
