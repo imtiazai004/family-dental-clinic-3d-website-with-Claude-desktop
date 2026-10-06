@@ -29,6 +29,18 @@ Upload the contents of `dist/` to any static host (Cloudflare Pages, Netlify, Ve
 
 The treatment list and age panels are rendered into static HTML at build time from `src/config.js` (see `vite.config.js`), so they are crawlable.
 
+## The two 3D looks (and how to go back)
+
+- **Gloss** (default now): bright white glossy teeth, candy-pink gums, chrome implant parts, sparkles, a glow under each object and a smiling milk tooth in the Children panel.
+- **Natural** (version 3): anatomical colours, exactly as before.
+
+To switch:
+
+- Quick look in a browser: add `#look-natural` or `#look-gloss` to the end of the page address.
+- Permanently: in `src/config.js` set `LOOK = 'natural'` (or `'gloss'`), then `npm run build`.
+- Review build with an on-screen switch: `VITE_REVIEW=1 npm run build`.
+- Full return to version 3: `git checkout v3-natural` (version 4 is tagged `v4-gloss`). The zip `family-dental-website-v3-natural.zip` is a second backup.
+
 ## The 3D models
 
 Every tooth is generated from signed-distance functions (`tools/sdf.mjs`), meshed with surface nets (`tools/mesher.mjs`), simplified and compressed with meshoptimizer into one GLB. To change a shape, edit `tools/build-models.mjs` and run `npm run models`. The GLB opens in Blender if you want to sculpt further.
