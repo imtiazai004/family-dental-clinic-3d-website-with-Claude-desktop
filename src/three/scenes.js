@@ -21,7 +21,7 @@ function followPlane() {
 export function buildScenes(gltf, stage) {
   const { scene } = stage;
   const gloss = stage.look === 'gloss';
-  const M = makeMaterials(stage.tier, stage.look);
+  const M = makeMaterials(stage.tier, stage.look, stage.tune);
   // Cross-section colours (lighter and cleaner in the gloss look).
   const CUT = gloss
     ? { bone: '#eed6b8', gum: '#ef9aab', enamel: '#ffffff', dentin: '#fdf7ee' }
@@ -288,7 +288,7 @@ export function buildScenes(gltf, stage) {
   const wire = makeTube(wireAnchors.map((w) => w.p), 0.014, M.steel);
   archInner.add(wire);
   const shadeA = new THREE.Color('#e2cd9f');
-  const shadeB = new THREE.Color(gloss ? '#ffffff' : '#f6f3ee');
+  const shadeB = new THREE.Color(gloss ? (stage.tune?.teeth || '#ffffff') : '#f6f3ee');
   const gumA = new THREE.Color(gloss ? '#f6a2af' : '#e07a8a');
   const gumB = new THREE.Color(gloss ? '#f9b4c0' : '#e88f9c');
 
@@ -354,9 +354,11 @@ export function buildScenes(gltf, stage) {
       const A = ch.anatomy;
       const ex = ease(seg(A.progress, 0.08, 0.5)) * (A.presence > 0.01 ? 1 : 0);
       const heroIntro = ch.ready;
+      // When the tooth comes apart it returns to the original size, so the pieces stay on screen.
+      const exFit = lerp(1, 1 / (L.size || 1), ex);
       show(hero, anyHero * heroIntro, L.main, L.portrait
-        ? { s: 0.98 - 0.26 * ex, y: 0.22 - 0.05 * ex }
-        : { s: 1.18 - 0.12 * ex, y: -0.02 - 0.12 * ex });
+        ? { s: (0.98 - 0.26 * ex) * exFit, y: 0.22 - 0.05 * ex }
+        : { s: (1.18 - 0.12 * ex) * exFit, y: -0.02 - 0.12 * ex });
       if (hero.visible) {
         const sway = Math.sin(t * 0.35) * 0.55;
         heroPivot.rotation.y = lerp(sway + pointer.x * 0.4 - 0.2, -0.45 + pointer.x * 0.1, ex);

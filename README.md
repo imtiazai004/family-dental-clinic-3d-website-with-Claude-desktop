@@ -39,7 +39,8 @@ To switch:
 - Quick look in a browser: add `#look-natural` or `#look-gloss` to the end of the page address.
 - Permanently: in `src/config.js` set `LOOK = 'natural'` (or `'gloss'`), then `npm run build`.
 - Review build with an on-screen switch: `VITE_REVIEW=1 npm run build`.
-- Full return to version 3: `git checkout v3-natural` (version 4 is tagged `v4-gloss`). The zip `family-dental-website-v3-natural.zip` is a second backup.
+- Teeth colour and object size of the gloss look: `TUNE` in `src/config.js`. Version 4.1 uses `size: 1.14, teeth: '#f5f1e9'`; version 4 was `size: 1, teeth: '#ffffff'`.
+- Full return to an earlier version: `git checkout v3-natural`, `git checkout v4-gloss` or `git checkout v4.1-gloss`. The zips `family-dental-website-v3-natural.zip` and `family-dental-website-v4-gloss.zip` are second backups.
 
 ## The 3D models
 

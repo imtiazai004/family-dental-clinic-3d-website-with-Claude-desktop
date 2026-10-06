@@ -148,7 +148,7 @@ export function makePulpRCT(plane) {
 }
 
 // Material recipes. fresh(name) returns a new, independent instance (clones lose shader patches).
-export function makeMaterials(tier, look = 'natural') {
+export function makeMaterials(tier, look = 'natural', tune = {}) {
   const lite = tier === 0;
   const extra = (o) => (lite ? { ...o, sheen: 0 } : o);
   const enamel = { ao: 0.95, cervical: '#ffeacb', thinColor: '#cbd5e4', thin: 0.45, trans: '#323c52', freq: 55, roughVar: 0.6, vary: 0.03 };
@@ -166,7 +166,7 @@ export function makeMaterials(tier, look = 'natural') {
     acrylic: [() => physical(extra({ color: '#df7d8e', roughness: 0.25, clearcoat: 1, clearcoatRoughness: 0.08 })), { ao: 0.9, bump: 0.12, freq: 9, vary: 0.05 }],
     milk: [() => physical(extra({ color: '#fbf8f2', roughness: 0.22, clearcoat: 0.9, clearcoatRoughness: 0.1, sheen: 0.35, sheenColor: new THREE.Color('#e7d9ff') })), { ...enamel, cervical: '#fff6ea' }],
   };
-  if (look === 'gloss') Object.assign(R, glossRecipes(extra));
+  if (look === 'gloss') Object.assign(R, glossRecipes(extra, tune));
   const fresh = (name) => { const [make, o] = R[name]; return surface(make(), o); };
   const M = { fresh };
   for (const name of Object.keys(R)) M[name] = fresh(name);
@@ -189,9 +189,9 @@ export function makeMaterials(tier, look = 'natural') {
 }
 
 // Bright, glossy "dental advert" look: pure white enamel, candy-pink translucent gums, chrome metal.
-function glossRecipes(extra) {
+function glossRecipes(extra, tune = {}) {
   const white = () => physical(extra({
-    color: '#ffffff', roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.04,
+    color: tune.teeth || '#ffffff', roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.04,
     sheen: 0.25, sheenColor: new THREE.Color('#ffffff'), sheenRoughness: 0.35,
   }));
   const whiteSurf = { ao: 0.55, cervical: '#ffffff', thinColor: '#eef2f8', thin: 0.15, trans: '#2a3242', vary: 0, roughVar: 0.05, freq: 40 };
@@ -208,7 +208,7 @@ function glossRecipes(extra) {
     archTeeth: [white, whiteSurf],
     milk: [white, whiteSurf],
     stained: [() => physical(extra({ color: '#efe1c3', roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.08 })), { ...whiteSurf, cervical: '#f4e2b8' }],
-    dentin: [() => physical(extra({ color: '#f7eedf', roughness: 0.26, clearcoat: 0.8, clearcoatRoughness: 0.1, sheen: 0.3, sheenColor: new THREE.Color('#fff6e8') })), { ao: 0.6, vary: 0, trans: '#3a2a12', freq: 40 }],
+    dentin: [() => physical(extra({ color: tune.dentin || '#f7eedf', roughness: 0.26, clearcoat: 0.8, clearcoatRoughness: 0.1, sheen: 0.3, sheenColor: new THREE.Color('#fff6e8') })), { ao: 0.6, vary: 0, trans: '#3a2a12', freq: 40 }],
     pulp: [() => physical({ color: '#ee4d69', roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.06, emissive: new THREE.Color('#ff3d63'), emissiveIntensity: 0.35 }), { ao: 0.6, trans: '#7a0e26', vary: 0, freq: 30 }],
     gum: [pink('#f6a2af'), pinkSurf],
     archGum: [pink('#f6a2af'), pinkSurf],

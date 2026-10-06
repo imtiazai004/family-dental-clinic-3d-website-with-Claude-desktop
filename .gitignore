@@ -2,3 +2,4 @@ node_modules/
 artifact/
 *.log
 artifact-gloss/
+artifact-gloss-v41/

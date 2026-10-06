@@ -2,7 +2,7 @@ import './styles.css';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import Lenis from 'lenis';
-import { CLINIC, waLink, currentLook } from './config.js';
+import { CLINIC, waLink, currentLook, TUNE } from './config.js';
 import { createStage, computeLayout, detectTier } from './three/stage.js';
 import { buildScenes, seg, clamp, ease } from './three/scenes.js';
 import { createBot } from './ui/bot.js';
@@ -177,6 +177,7 @@ addEventListener('pointermove', (e) => {
 let ready = 0, readyStart = 0;
 try {
   stage = createStage(canvas, detectTier(), LOOK_NOW);
+  stage.tune = TUNE[LOOK_NOW] || {};
 } catch (e) {
   html.classList.add('no-gl');
 }
@@ -268,7 +269,7 @@ function frame(now) {
     const any = Math.max(CH.hero.presence, CH.anatomy.presence, CH.generations.presence, CH.implant.presence,
       CH.rct.presence, CH.restore.presence, CH.studio.presence);
     if (any > 0.002 || rendered) {
-      scenes.update(ch, t, pointer, computeLayout(stage.view));
+      scenes.update(ch, t, pointer, computeLayout(stage.view, stage.tune.size));
       stage.renderer.render(stage.scene, stage.camera);
       rendered = any > 0.002;
       labels.update(stage.camera, stage.view, (g) => {

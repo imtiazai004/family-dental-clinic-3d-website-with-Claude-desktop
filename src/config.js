@@ -45,6 +45,13 @@ export function currentLook() {
   return LOOK;
 }
 
+// Fine-tuning per look. size scales the 3D objects (1 = version 3 size);
+// teeth is the enamel colour of the gloss look. Version 4 used size 1 and teeth '#ffffff'.
+export const TUNE = {
+  gloss: { size: 1.14, teeth: '#f5f1e9', dentin: '#efe3cf' },
+  natural: { size: 1 },
+};
+
 export const waLink = (text = '') =>
   `https://wa.me/${CLINIC.phoneIntl}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
 

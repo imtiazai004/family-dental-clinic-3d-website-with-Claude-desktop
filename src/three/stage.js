@@ -107,22 +107,26 @@ export function createStage(canvas, tier, look = 'natural') {
 }
 
 // Where 3D content sits: right of the copy on wide screens, above it on phones.
-export function computeLayout(view) {
+// size > 1 enlarges the objects; wide scenes (jaw, arch) grow a little less so they stay clear of the copy.
+export function computeLayout(view, size = 1) {
   const { visW, visH, portrait } = view;
+  const g = size - 1;
   if (portrait) {
     const y = visH * 0.17;
     return {
       portrait: true,
-      main: { x: 0, y, s: Math.min(1, (visW * 0.9) / 2.6) },
-      wide: { x: 0, y: y + 0.12, s: Math.min(1, (visW * 0.95) / 3.7) },
-      arch: { x: 0, y: y + 0.1, s: Math.min(0.75, (visW * 1.1) / 5.6) },
+      size,
+      main: { x: 0, y, s: Math.min(1, (visW * 0.9) / 2.6) * (1 + g * 0.45) },
+      wide: { x: 0, y: y + 0.12, s: Math.min(1, (visW * 0.95) / 3.7) * (1 + g * 0.4) },
+      arch: { x: 0, y: y + 0.1, s: Math.min(0.75, (visW * 1.1) / 5.6) * (1 + g * 0.3) },
     };
   }
   const right = visW * 0.2;
   return {
     portrait: false,
-    main: { x: right, y: -0.05, s: Math.min(1.08, visH / 5.2) },
-    wide: { x: right * 0.95, y: -0.05, s: Math.min(1.0, (visW * 0.55) / 3.8, visH / 5.4) },
-    arch: { x: right * 0.95, y: 0.05, s: Math.min(0.78, (visW * 0.56) / 5.8) },
+    size,
+    main: { x: right, y: -0.05, s: Math.min(1.08, visH / 5.2) * (1 + g) },
+    wide: { x: right * 0.95, y: -0.05, s: Math.min(1.0, (visW * 0.55) / 3.8, visH / 5.4) * (1 + g * 0.5) },
+    arch: { x: right * 0.95, y: 0.05, s: Math.min(0.78, (visW * 0.56) / 5.8) * (1 + g * 0.5) },
   };
 }
