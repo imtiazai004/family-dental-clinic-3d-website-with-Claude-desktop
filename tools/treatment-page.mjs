@@ -114,7 +114,7 @@ export function renderTreatmentPage(t, { explicit = false } = {}) {
         <h2 id="types-h">${esc(t.options.title)}</h2>
         <p>The dentist recommends what suits you after your check-up and, if needed, an X-ray.</p>
       </div>
-      <ul class="tx-cards${t.options.items.some((o) => o.model) ? ' has-3d' : ''}">${t.options.items.map((o, i) => o.model ? xcard(o, i, t) : `
+      <ul class="tx-cards${t.options.items.some((o) => o.model) ? ' has-3d' : ''}" style="--n: ${Math.min(4, t.options.items.length)}">${t.options.items.map((o, i) => o.model ? xcard(o, i, t) : `
         <li class="tx-card">
           <span class="tx-card-n">${String(i + 1).padStart(2, '0')}</span>
           <h3>${esc(o.name)}</h3>

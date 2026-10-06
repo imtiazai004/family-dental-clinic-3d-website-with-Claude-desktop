@@ -561,7 +561,7 @@ address { font-style: normal; font-size: 1.25rem; line-height: 1.5; margin-top: 
 /* ---------------------------------------------------------------- explode cards (types with a 3D model) */
 .tx-cards.has-3d { grid-template-columns: 1fr; }
 @media (min-width: 640px) { .tx-cards.has-3d { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1100px) { .tx-cards.has-3d { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1100px) { .tx-cards.has-3d { grid-template-columns: repeat(var(--n, 4), 1fr); max-width: calc(var(--n, 4) * 22rem); } }
 .xcard { padding: 0 0 1.4rem; overflow: hidden; }
 .xcard > :not(.xcard-open) { margin-inline: 1.4rem; }
 .xcard-open { all: unset; display: block; width: 100%; cursor: pointer; border-radius: 22px 22px 0 0; }

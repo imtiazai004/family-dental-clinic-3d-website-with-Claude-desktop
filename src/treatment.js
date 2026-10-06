@@ -8,7 +8,7 @@ import { CLINIC, waLink, currentLook, TUNE } from './config.js';
 import { createStage, computeLayout, detectTier } from './three/stage.js';
 import { buildScenes, seg, clamp, ease } from './three/scenes.js';
 import { createKit } from './three/kit.js';
-import { buildImplantStory } from './three/implant-story.js';
+import { STORIES } from './three/stories/index.js';
 import { makeDust } from './three/procedural.js';
 import { initExplodeCards } from './ui/explode-cards.js';
 import { createBot } from './ui/bot.js';
@@ -115,12 +115,12 @@ function layoutFor(progress, heroK = 0) {
     const k = 1 - ease(seg(progress, 0.15, 0.6));
     L.wide = { ...L.wide, y: L.wide.y - 0.4 * k };
   }
-  // The implant story zooms in on details, so on phones it starts a little smaller.
-  if (L.portrait && STORY === 'implant') L.wide = { ...L.wide, s: L.wide.s * 0.86 };
+  // The stories zoom in on details, so on phones they start a little smaller.
+  if (L.portrait && STORY) for (const k of ['main', 'wide', 'arch']) L[k] = { ...L[k], s: L[k].s * 0.86 };
   if (L.portrait && heroK > 0) {
     // The implant parts float high when taken apart, so that scene rises less and shrinks a little more.
-    const up = STORY === 'implant' ? 0.04 : SCENE === 'implant' ? 0.28 : 0.42;
-    const shrink = STORY === 'implant' ? 0.3 : SCENE === 'implant' ? 0.27 : 0.2;
+    const up = STORY ? 0.04 : SCENE === 'implant' ? 0.28 : 0.42;
+    const shrink = STORY ? 0.3 : SCENE === 'implant' ? 0.27 : 0.2;
     for (const key of ['main', 'wide', 'arch']) {
       L[key] = { ...L[key], y: L[key].y + up * heroK, s: L[key].s * (1 - shrink * heroK) };
     }
@@ -159,8 +159,8 @@ if (stage) {
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
   const layer = document.getElementById('labels');
-  const onLoad = (gltf) => {
-    if (STORY === 'implant') driver = implantDriver(gltf, layer);
+  const onLoad = async (gltf) => {
+    if (STORY && STORIES[STORY]) driver = await storyDriver(gltf, layer);
     else driver = homeSceneDriver(gltf, layer);
     // Draw the opening state once, then compile just the materials in use.
     driver.update(1, 0, 0, 1, layoutFor(0, 1), 1);
@@ -192,31 +192,21 @@ addEventListener('fd:model', (e) => {
   initExplodeCards({ gltf: e.detail.gltf, look: LOOK_NOW, tier: stage.tier, tune: stage.tune, lenis, reduce });
 }, { once: true });
 
-// The implant page's own seven-step story.
-function implantDriver(gltf, layer) {
+// Pages with their own 3D story (src/three/stories/<name>.js).
+async function storyDriver(gltf, layer) {
   const kit = createKit(gltf, stage);
-  const story = buildImplantStory(kit);
+  const mod = await STORIES[STORY]();
+  const story = mod.build(kit);
   stage.scene.add(story.group);
   const dust = makeDust(stage.tier === 0 ? 50 : 100);
   stage.scene.add(dust);
   if (stage.shadows) story.group.traverse((o) => { if (o.isMesh && !o.material.transparent) { o.castShadow = true; o.receiveShadow = true; } });
-  const A = story.anchors;
-  labels = createLabels(layer, [
-    { group: 'heroParts', text: 'Crown', anchor: A.heroCrown },
-    { group: 'heroParts', text: 'Abutment', anchor: A.heroAbutment },
-    { group: 'heroParts', text: 'Implant', anchor: A.heroImplant },
-    { group: 'gap', text: 'Missing tooth', anchor: A.gap },
-    { group: 'plan', text: 'Planned position and angle', anchor: A.plan },
-    { group: 'implant', text: 'Implant in the bone', anchor: A.implant },
-    { group: 'month', text: () => `Healing: month ${story.state.month}`, anchor: A.month },
-    { group: 'abutment', text: 'Abutment', anchor: A.abutment },
-    { group: 'crown', text: 'Shade matched', anchor: A.crown },
-    { group: 'bite', text: 'Bite checked', anchor: A.bite },
-  ]);
+  labels = createLabels(layer, story.labels || []);
+  const key = story.layout || 'wide';
   return {
     update(presence, progress, t, heroK, L) {
-      place(story.group, presence, L.wide);
-      stage.fitShadow?.(L.wide.x, L.wide.y);
+      place(story.group, presence, L[key]);
+      stage.fitShadow?.(L[key].x, L[key].y);
       dust.material.uniforms.uTime.value = t;
       dust.material.uniforms.uPx.value = stage.renderer.getPixelRatio() * 60;
       dust.material.uniforms.uAmount.value = 0.5 * presence;

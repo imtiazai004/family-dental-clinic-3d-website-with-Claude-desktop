@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { createStage } from '../three/stage.js';
 import { createKit } from '../three/kit.js';
-import { buildTypeModel } from '../three/implant-types.js';
+import { buildTypeModel } from '../three/types/index.js';
 
 // Cards whose 3D model comes apart. At rest each card shows two still renders (together / slightly apart,
 // swapped on hover). Opening a card grows it into a panel where the live model comes apart with labels,
