@@ -8,6 +8,6 @@ export const STORIES = {
   whitening: () => import('./whitening.js'),
   filling: () => import('./filling.js'),
   extraction: () => import('./extraction.js'),
-  // denture: () => import('./denture.js'),
-  // partial: () => import('./partial.js'),
+  denture: () => import('./denture.js'),
+  partial: () => import('./partial.js'),
 };

@@ -67,7 +67,7 @@ export function buildArch(kit, opts = {}) {
     for (const b of bounds) best = Math.min(best, Math.abs(Math.abs(b) - Math.abs(s)));
     return Math.pow(Math.min(1, Math.max(0, 1 - best / 0.35)), 2);
   };
-  const gum = makeGum(arch, 5.7, papilla, gumMat);
+  const gum = makeGum(arch, 5.7, opts.smooth ? () => 0 : papilla, gumMat, { widen: opts.gumWiden || 0 });
   inner.add(gum);
   // Point on a tooth (tooth space) in the arch group's space.
   const onTooth = (t, local) => local.clone().applyQuaternion(t.slot.quaternion).add(t.p).add(inner.position);

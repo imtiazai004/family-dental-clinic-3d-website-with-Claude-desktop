@@ -110,16 +110,21 @@ export function makeArchCurve(halfLength) {
 }
 
 // Gum ridge that follows the arch: an inverted-U cross-section with papillae between teeth.
-export function makeGum(arch, extent, papilla, mat) {
+// opts.widen grows the cross-section (for things that fit over the gum); opts.from/to build only part
+// of the arch (s from..to), tapered at both ends.
+export function makeGum(arch, extent, papilla, mat, opts = {}) {
   const segS = 220, segC = 40;
+  const widen = opts.widen || 0;
+  const from = opts.from ?? -extent, to = opts.to ?? extent;
+  const part = opts.from !== undefined || opts.to !== undefined;
   const pos = [];
   const surf = [];
   const idx = [];
   for (let i = 0; i <= segS; i++) {
-    const s = -extent + (2 * extent * i) / segS;
+    const s = from + ((to - from) * i) / segS;
     const { p, t } = arch.at(s);
     const n = new THREE.Vector3(-t.z, 0, t.x).normalize();
-    const end = smooth(extent, extent - 0.45, Math.abs(s));
+    const end = part ? Math.min(smooth(from, from + 0.3, s), smooth(to, to - 0.3, s)) : smooth(extent, extent - 0.45, Math.abs(s));
     const pap = papilla(s);
     for (let j = 0; j < segC; j++) {
       const th = (j / segC) * Math.PI * 2;
@@ -127,8 +132,8 @@ export function makeGum(arch, extent, papilla, mat) {
       let w = 0.6 * Math.sign(c) * Math.pow(Math.abs(c), 0.55);
       let y = 0.2 + 0.26 * Math.sign(sn) * Math.pow(Math.abs(sn), 0.6);
       if (sn < 0) y -= -sn * (0.26 * pap - 0.03);
-      w *= 0.25 + 0.75 * end;
-      y = 0.2 + (y - 0.2) * (0.25 + 0.75 * end);
+      w *= (0.25 + 0.75 * end) * (1 + widen);
+      y = 0.2 + (y - 0.2) * (0.25 + 0.75 * end) * (1 + widen);
       pos.push(p.x + n.x * w, y, p.z + n.z * w);
       const low = sn < 0 ? -sn : 0;
       surf.push(Math.max(0, 1 - low * (0.28 + 0.3 * pap)), 0.75 + 0.25 * (1 - low), Math.min(1, Math.max(0, (y + 0.1) / 0.55)));
