@@ -3,6 +3,7 @@ import { makeMaterials, withCutFace, makePulpRCT } from './materials.js';
 import {
   makeFixture, makeAbutment, makeFile, makeBracket, makeArchCurve, makeGum, makePalate, makeTube, makeDust,
 } from './procedural.js';
+import { makeGlossKit, addToothFace } from './gloss.js';
 
 export const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 export const seg = (p, a, b) => clamp((p - a) / (b - a));
@@ -19,7 +20,12 @@ function followPlane() {
 
 export function buildScenes(gltf, stage) {
   const { scene } = stage;
-  const M = makeMaterials(stage.tier);
+  const gloss = stage.look === 'gloss';
+  const M = makeMaterials(stage.tier, stage.look);
+  // Cross-section colours (lighter and cleaner in the gloss look).
+  const CUT = gloss
+    ? { bone: '#eed6b8', gum: '#ef9aab', enamel: '#ffffff', dentin: '#fdf7ee' }
+    : { bone: '#f0e0c0', gum: '#c25a6e', enamel: '#f8f3ea', dentin: '#ebd197' };
   const src = (name) => gltf.scene.getObjectByName(name);
   const part = (name, mat) => {
     const n = src(name).clone();
@@ -61,12 +67,21 @@ export function buildScenes(gltf, stage) {
   const gen = new THREE.Group();
   root.add(gen);
   const genItems = [];
+  let kidTooth = null, teenTooth = null, adultTooth = null, seniorCrown = null;
   {
     const kid = new THREE.Group();
-    const k = part('incisor_crown', M.milk);
-    k.scale.setScalar(1.15);
-    k.position.y = -0.45;
-    kid.add(k);
+    if (gloss) {
+      // A smiling milk tooth, like a children's dental illustration.
+      kidTooth = molar({ enamel: M.milk, dentin: M.milk }, false);
+      kidTooth.g.position.y = 0.42;
+      kidTooth.g.scale.setScalar(0.88);
+      kid.add(kidTooth.g);
+    } else {
+      const k = part('incisor_crown', M.milk);
+      k.scale.setScalar(1.15);
+      k.position.y = -0.45;
+      kid.add(k);
+    }
     const teen = new THREE.Group();
     const t = part('incisor_crown', M.enamel);
     t.scale.setScalar(1.35);
@@ -77,11 +92,13 @@ export function buildScenes(gltf, stage) {
     wire.rotation.z = Math.PI / 2;
     wire.position.set(0, 0.0, 0.27);
     teen.add(t, br, wire);
+    teenTooth = t;
     const adult = new THREE.Group();
     const am = molar({}, false);
     am.g.position.y = 0.48;
     am.g.scale.setScalar(0.95);
     adult.add(am.g);
+    adultTooth = am;
     const senior = new THREE.Group();
     const fx = makeFixture(M);
     fx.position.y = -0.3;
@@ -93,6 +110,7 @@ export function buildScenes(gltf, stage) {
     sg.position.y = 0.55;
     sg.scale.setScalar(1.1);
     senior.add(sg);
+    seniorCrown = cr;
     for (const it of [kid, teen, adult, senior]) { gen.add(it); genItems.push(it); }
   }
 
@@ -103,8 +121,8 @@ export function buildScenes(gltf, stage) {
   root.add(imp);
   const impClip = followPlane();
   const impMats = {
-    bone: withCutFace(M.fresh('bone'), '#f0e0c0', impClip.plane, 1),
-    gum: withCutFace(M.fresh('gum'), '#c25a6e', impClip.plane),
+    bone: withCutFace(M.fresh('bone'), CUT.bone, impClip.plane, 1),
+    gum: withCutFace(M.fresh('gum'), CUT.gum, impClip.plane),
   };
   const impJaw = new THREE.Group();
   impJaw.add(part('jaw_bone', impMats.bone), part('jaw_gum', impMats.gum));
@@ -134,10 +152,10 @@ export function buildScenes(gltf, stage) {
   const rctClip = followPlane();
   const pulpRCT = makePulpRCT(rctClip.plane);
   const rctMats = {
-    enamel: withCutFace(M.fresh('enamel'), '#f8f3ea', rctClip.plane),
-    dentin: withCutFace(M.fresh('dentin'), '#ebd197', rctClip.plane),
-    bone: withCutFace(M.fresh('bone'), '#f0e0c0', rctClip.plane, 1),
-    gum: withCutFace(M.fresh('gum'), '#c25a6e', rctClip.plane),
+    enamel: withCutFace(M.fresh('enamel'), CUT.enamel, rctClip.plane),
+    dentin: withCutFace(M.fresh('dentin'), CUT.dentin, rctClip.plane),
+    bone: withCutFace(M.fresh('bone'), CUT.bone, rctClip.plane, 1),
+    gum: withCutFace(M.fresh('gum'), CUT.gum, rctClip.plane),
   };
   const rctJaw = new THREE.Group();
   rctJaw.add(part('jaw_bone', rctMats.bone), part('jaw_gum', rctMats.gum));
@@ -249,7 +267,7 @@ export function buildScenes(gltf, stage) {
       archInner.add(slot);
       const front = i < 3 ? 1 : i < 5 ? 0.6 : 0.3;
       archTeeth.push({
-        tooth, slot,
+        tooth, slot, mesh,
         off: { ry: rand() * 0.55 * front, rz: rand() * 0.22 * front, z: rand() * 0.22 * front, y: rand() * 0.08 * front },
       });
     });
@@ -270,9 +288,40 @@ export function buildScenes(gltf, stage) {
   const wire = makeTube(wireAnchors.map((w) => w.p), 0.014, M.steel);
   archInner.add(wire);
   const shadeA = new THREE.Color('#e2cd9f');
-  const shadeB = new THREE.Color('#f6f3ee');
-  const gumA = new THREE.Color('#e07a8a');
-  const gumB = new THREE.Color('#e88f9c');
+  const shadeB = new THREE.Color(gloss ? '#ffffff' : '#f6f3ee');
+  const gumA = new THREE.Color(gloss ? '#f6a2af' : '#e07a8a');
+  const gumB = new THREE.Color(gloss ? '#f9b4c0' : '#e88f9c');
+
+  // ------------------------------------------------------------------ gloss extras (glints, glow pads, kids' face)
+  const gs = { ex: 0, crown: 0, newCrown: 0, ven: 0, shade: 0, den: 0 };
+  let kit = null;
+  const glossPads = {};
+  if (gloss) {
+    kit = makeGlossKit(stage);
+    root.updateMatrixWorld(true);
+    const bottom = (o, space) => {
+      space.updateWorldMatrix(true, true);
+      const b = new THREE.Box3().setFromObject(o);
+      return b.min.y - space.getWorldPosition(new THREE.Vector3()).y;
+    };
+    kit.glint(heroTooth.e, heroTooth.e, 0.7, 0.86, 0.6, () => 1, 0.4);
+    kit.glint(heroTooth.e, heroTooth.e, 0.26, 0.6, 0.32, () => 1, 2.9);
+    kit.glint(kidTooth.e, kidTooth.g, 0.74, 0.92, 0.42, () => 1, 1.3);
+    kit.glint(teenTooth, teenTooth, 0.66, 0.8, 0.38, () => 1, 3.7);
+    kit.glint(adultTooth.e, adultTooth.e, 0.7, 0.86, 0.45, () => 1, 5.1);
+    kit.glint(seniorCrown, seniorCrown, 0.68, 0.86, 0.45, () => 1, 2.2);
+    kit.glint(implantCrown, implantCrown, 0.7, 0.86, 0.5, () => gs.crown, 0.9);
+    kit.glint(newCrown, newCrown, 0.7, 0.86, 0.5, () => gs.newCrown, 4.4);
+    veneers.slice(0, 2).forEach((v, i) => kit.glint(v.m, v.m, 0.6, 0.55, 0.36, () => gs.ven, 1.7 + i * 2.3));
+    [archTeeth[0], archTeeth[7]].forEach((a, i) => kit.glint(a.mesh, a.mesh, 0.6, 0.55, 0.5, () => seg(gs.shade, 0.6, 0.95) * (1 - gs.den), 0.6 + i * 3));
+    addToothFace(kit, kidTooth.e, kidTooth.g);
+    glossPads.hero = kit.pad(hero, { y: bottom(heroTooth.g, hero) - 0.05, w: 2.6, halo: 0.2, haloY: 0.1 });
+    glossPads.gen = kit.pad(gen, { y: bottom(adultTooth.g, gen) - 0.05, w: 2.3, halo: 0.16, haloY: 0.1 });
+    glossPads.restore = kit.pad(restore, { y: bottom(crownSet, restore) - 0.05, w: 2.4, halo: 0.16, haloY: 0.1 });
+    glossPads.imp = kit.pad(imp, { floor: 0, halo: 0.14, w: 3.4, haloY: 0.4 });
+    glossPads.rct = kit.pad(rct, { floor: 0, halo: 0.14, w: 2.6, haloY: 0.3 });
+    glossPads.studio = kit.pad(studio, { floor: 0, halo: 0.12, w: 4.2, haloY: 0.2 });
+  }
 
   // ------------------------------------------------------------------ update
   const tmp = new THREE.Vector3();
@@ -332,8 +381,16 @@ export function buildScenes(gltf, stage) {
           it.visible = pr > 0.01;
           it.scale.setScalar(0.4 + 0.6 * easeOut(pr));
           it.position.x = (i + 0.5 - f) * 1.6 * (1 - pr * 0.6);
-          it.rotation.y = t * 0.45 + i + pointer.x * 0.3;
-          it.rotation.x = 0.15 + pointer.y * 0.1;
+          if (gloss && i === 0) {
+            // The smiling tooth sways and hops instead of spinning, so its face stays visible.
+            it.rotation.y = Math.sin(t * 0.9) * 0.38 + pointer.x * 0.3;
+            it.rotation.z = Math.sin(t * 1.8) * 0.05;
+            it.rotation.x = 0.05 + pointer.y * 0.1;
+            it.position.y = Math.abs(Math.sin(t * 1.8)) * 0.07;
+          } else {
+            it.rotation.y = t * 0.45 + i + pointer.x * 0.3;
+            it.rotation.x = 0.15 + pointer.y * 0.1;
+          }
         });
       }
 
@@ -356,6 +413,7 @@ export function buildScenes(gltf, stage) {
         abutment.rotation.y = (1 - b) * t * 0.6;
         implantCrown.position.y = lerp(2.8 + hover(2), 0, c);
         implantCrown.rotation.y = (1 - c) * (0.8 + t * 0.4);
+        gs.crown = seg(c, 0.85, 1);
         imp.updateMatrixWorld(true);
         impClip.sync(impPivot, 0.0);
       }
@@ -398,6 +456,7 @@ export function buildScenes(gltf, stage) {
         crownPivot.rotation.x = 0.2 + pointer.y * 0.1;
         newCrown.position.y = lerp(1.6, 0, drop);
         newCrown.rotation.y = (1 - drop) * 1.6;
+        gs.newCrown = seg(drop, 0.85, 1) * (1 - seg(swap, 0, 0.3));
         veneerPivot.visible = swap > 0.001;
         veneerPivot.scale.setScalar((0.4 + 0.6 * swap) * (L.portrait ? 0.82 : 1.15));
         veneerPivot.position.x = (1 - swap) * 2.2;
@@ -408,6 +467,7 @@ export function buildScenes(gltf, stage) {
           v.m.position.z = lerp(1.2, 0, k);
           v.m.position.x = lerp(0.25, 0, k);
         }
+        gs.ven = seg(p, 0.86, 0.96);
       }
 
       // smile studio
@@ -421,6 +481,8 @@ export function buildScenes(gltf, stage) {
         const shade = manualShade ?? autoShade;
         api.shade = shade;
         const den = ease(seg(p, 0.7, 0.88));
+        gs.shade = shade;
+        gs.den = den;
         for (const at of archTeeth) {
           const k = 1 - align;
           at.tooth.rotation.set(0, at.off.ry * k, at.off.rz * k);
@@ -435,6 +497,16 @@ export function buildScenes(gltf, stage) {
         studioPivot.rotation.x = lerp(0.1, -1.0, den) + pointer.y * 0.06;
         studioPivot.rotation.y = pointer.x * 0.25 + Math.sin(t * 0.25) * 0.05 + den * 0.35 * Math.sin(t * 0.4);
         studioPivot.position.set(0, lerp(0.15, -0.35, den), lerp(0, -1.4, den));
+      }
+
+      if (kit) {
+        kit.fade(glossPads.hero, 1 - 0.45 * ex);
+        kit.fade(glossPads.gen, 1);
+        kit.fade(glossPads.restore, 1);
+        kit.fade(glossPads.imp, 1);
+        kit.fade(glossPads.rct, 1);
+        kit.fade(glossPads.studio, 1 - gs.den * 0.5);
+        kit.update(t);
       }
     },
   };

@@ -148,7 +148,7 @@ export function makePulpRCT(plane) {
 }
 
 // Material recipes. fresh(name) returns a new, independent instance (clones lose shader patches).
-export function makeMaterials(tier) {
+export function makeMaterials(tier, look = 'natural') {
   const lite = tier === 0;
   const extra = (o) => (lite ? { ...o, sheen: 0 } : o);
   const enamel = { ao: 0.95, cervical: '#ffeacb', thinColor: '#cbd5e4', thin: 0.45, trans: '#323c52', freq: 55, roughVar: 0.6, vary: 0.03 };
@@ -166,6 +166,7 @@ export function makeMaterials(tier) {
     acrylic: [() => physical(extra({ color: '#df7d8e', roughness: 0.25, clearcoat: 1, clearcoatRoughness: 0.08 })), { ao: 0.9, bump: 0.12, freq: 9, vary: 0.05 }],
     milk: [() => physical(extra({ color: '#fbf8f2', roughness: 0.22, clearcoat: 0.9, clearcoatRoughness: 0.1, sheen: 0.35, sheenColor: new THREE.Color('#e7d9ff') })), { ...enamel, cervical: '#fff6ea' }],
   };
+  if (look === 'gloss') Object.assign(R, glossRecipes(extra));
   const fresh = (name) => { const [make, o] = R[name]; return surface(make(), o); };
   const M = { fresh };
   for (const name of Object.keys(R)) M[name] = fresh(name);
@@ -177,5 +178,41 @@ export function makeMaterials(tier) {
     handle: physical(extra({ color: '#3f6fd6', roughness: 0.32, clearcoat: 0.6 })),
     stopper: physical({ color: '#ffb347', roughness: 0.5 }),
   });
+  if (look === 'gloss') {
+    Object.assign(M, {
+      titanium: physical({ color: '#eef1f5', metalness: 1, roughness: 0.2, envMapIntensity: 2.2 }),
+      abutment: physical({ color: '#e6e9ee', metalness: 1, roughness: 0.18, envMapIntensity: 2.2 }),
+      steel: physical({ color: '#eef1f5', metalness: 1, roughness: 0.12, envMapIntensity: 2 }),
+    });
+  }
   return M;
+}
+
+// Bright, glossy "dental advert" look: pure white enamel, candy-pink translucent gums, chrome metal.
+function glossRecipes(extra) {
+  const white = () => physical(extra({
+    color: '#ffffff', roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.04,
+    sheen: 0.25, sheenColor: new THREE.Color('#ffffff'), sheenRoughness: 0.35,
+  }));
+  const whiteSurf = { ao: 0.55, cervical: '#ffffff', thinColor: '#eef2f8', thin: 0.15, trans: '#2a3242', vary: 0, roughVar: 0.05, freq: 40 };
+  const pink = (hex) => () => physical(extra({
+    color: hex, roughness: 0.3, clearcoat: 0.9, clearcoatRoughness: 0.1,
+    sheen: 0.6, sheenColor: new THREE.Color('#ffd3db'), sheenRoughness: 0.4,
+    emissive: new THREE.Color('#ff6f86'), emissiveIntensity: 0.1,
+  }));
+  const pinkSurf = { ao: 0.7, cervical: '#ffffff', trans: '#9a1631', vary: 0.02, freq: 30 };
+  return {
+    enamel: [white, whiteSurf],
+    porcelain: [white, whiteSurf],
+    veneer: [white, { ...whiteSurf, thin: 0.25 }],
+    archTeeth: [white, whiteSurf],
+    milk: [white, whiteSurf],
+    stained: [() => physical(extra({ color: '#efe1c3', roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.08 })), { ...whiteSurf, cervical: '#f4e2b8' }],
+    dentin: [() => physical(extra({ color: '#f7eedf', roughness: 0.26, clearcoat: 0.8, clearcoatRoughness: 0.1, sheen: 0.3, sheenColor: new THREE.Color('#fff6e8') })), { ao: 0.6, vary: 0, trans: '#3a2a12', freq: 40 }],
+    pulp: [() => physical({ color: '#ee4d69', roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.06, emissive: new THREE.Color('#ff3d63'), emissiveIntensity: 0.35 }), { ao: 0.6, trans: '#7a0e26', vary: 0, freq: 30 }],
+    gum: [pink('#f6a2af'), pinkSurf],
+    archGum: [pink('#f6a2af'), pinkSurf],
+    acrylic: [pink('#f39aab'), { ...pinkSurf, bump: 0.05, freq: 9 }],
+    bone: [() => physical({ color: '#f5ecdc', roughness: 0.55, clearcoat: 0.3 }), { ao: 0.75, bump: 0.05, freq: 18, vary: 0.03 }],
+  };
 }

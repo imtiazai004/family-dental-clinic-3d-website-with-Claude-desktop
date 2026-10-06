@@ -382,3 +382,19 @@ address { font-style: normal; font-size: 1.25rem; line-height: 1.5; margin-top: 
   .step, .bot-panel { transition: none; animation: none; }
   .typing i { animation: none; }
 }
+
+/* ---------------------------------------------------------------- look switch (review builds only) */
+.look-switch {
+  position: fixed; left: max(16px, 2.2vw); bottom: calc(max(16px, 2.2vw) + var(--dock-h)); z-index: 35;
+  display: flex; align-items: center; gap: 4px; padding: 4px 4px 4px 12px; border-radius: 999px;
+  background: color-mix(in oklab, var(--surface) 88%, transparent); border: 1px solid var(--line-2);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  font: 600 0.8rem var(--body); color: var(--ink-2, var(--ink));
+}
+.look-switch span { margin-right: 4px; opacity: 0.75; }
+.look-switch button {
+  min-height: 34px; padding: 0 14px; border-radius: 999px; border: 0; cursor: pointer;
+  background: transparent; color: var(--ink); font: inherit;
+}
+.look-switch button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+@media (max-aspect-ratio: 9/10) { .look-switch { top: 64px; bottom: auto; left: auto; right: 12px; font-size: 0.75rem; } .look-switch button { min-height: 30px; padding: 0 11px; } }

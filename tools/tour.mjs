@@ -7,7 +7,8 @@ const page = await ctx.newPage();
 const logs = [];
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') logs.push(m.type() + ': ' + m.text()); });
 page.on('pageerror', (e) => logs.push('pageerror: ' + e.message));
-await page.goto(url + (url.includes("?") ? "&" : "?") + "snap", { waitUntil: "load" });
+const [base, hash = ''] = url.split('#');
+await page.goto(base + (base.includes('?') ? '&' : '?') + 'snap' + (hash ? '#' + hash : ''), { waitUntil: 'load' });
 try { await page.waitForFunction(() => document.documentElement.classList.contains('loaded') || document.documentElement.classList.contains('no-gl'), null, { timeout: 60000 }); } catch { logs.push('not loaded'); }
 const shots = [
   ['hero', 0, 0],

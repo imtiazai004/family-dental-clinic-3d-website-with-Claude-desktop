@@ -2,15 +2,17 @@ import './styles.css';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import Lenis from 'lenis';
-import { CLINIC, waLink } from './config.js';
+import { CLINIC, waLink, currentLook } from './config.js';
 import { createStage, computeLayout, detectTier } from './three/stage.js';
 import { buildScenes, seg, clamp, ease } from './three/scenes.js';
 import { createBot } from './ui/bot.js';
 import { createLabels } from './ui/labels.js';
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const SNAP = new URLSearchParams(location.search).has('snap');
 const html = document.documentElement;
+const SNAP = new URLSearchParams(location.search).has('snap');
+const LOOK_NOW = currentLook();
+html.dataset.look = LOOK_NOW;
 
 // ---------------------------------------------------------------- links and buttons
 for (const a of document.querySelectorAll('[data-wa]')) {
@@ -174,7 +176,7 @@ addEventListener('pointermove', (e) => {
 
 let ready = 0, readyStart = 0;
 try {
-  stage = createStage(canvas, detectTier());
+  stage = createStage(canvas, detectTier(), LOOK_NOW);
 } catch (e) {
   html.classList.add('no-gl');
 }
@@ -215,6 +217,20 @@ if (stage) {
     loader.parse(buf, './', onLoad, () => html.classList.add('no-gl'));
   })().catch(() => html.classList.add('no-gl'));
   addEventListener('resize', () => stage.resize());
+}
+
+// Review builds get a small switch to compare the two 3D looks.
+if (import.meta.env.VITE_REVIEW) {
+  const sw = document.createElement('div');
+  sw.className = 'look-switch';
+  sw.innerHTML = `<span>3D look</span>${['gloss', 'natural'].map((l) => `<button type="button" data-look="${l}" aria-pressed="${l === LOOK_NOW}">${l === 'gloss' ? 'Gloss' : 'Natural'}</button>`).join('')}`;
+  sw.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-look]');
+    if (!b || b.dataset.look === LOOK_NOW) return;
+    location.hash = `look-${b.dataset.look}`;
+    location.reload();
+  });
+  document.body.appendChild(sw);
 }
 
 // ---------------------------------------------------------------- loop

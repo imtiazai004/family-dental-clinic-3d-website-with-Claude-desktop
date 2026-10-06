@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 // Photo-studio environment: a large overhead softbox, two strip lights and a warm floor bounce
 // inside a dark plum room. Gives enamel, wet gums and metal believable reflections.
-function studio() {
+function studio(look) {
+  const gloss = look === 'gloss';
   const s = new THREE.Scene();
-  const room = new THREE.Mesh(new THREE.BoxGeometry(24, 24, 24), new THREE.MeshBasicMaterial({ color: new THREE.Color('#2a1a2e').multiplyScalar(0.9), side: THREE.BackSide }));
+  const room = new THREE.Mesh(new THREE.BoxGeometry(24, 24, 24), new THREE.MeshBasicMaterial({ color: new THREE.Color(gloss ? '#36343e' : '#2a1a2e').multiplyScalar(0.9), side: THREE.BackSide }));
   s.add(room);
   const panel = (w, h, hex, k, x, y, z) => {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(hex).multiplyScalar(k), side: THREE.DoubleSide }));
@@ -11,6 +12,15 @@ function studio() {
     m.lookAt(0, 0, 0);
     s.add(m);
   };
+  if (gloss) {
+    panel(10, 6, '#ffffff', 9, 0, 8, 5);
+    panel(2.4, 11, '#eef3ff', 6, -8, 1, 3);
+    panel(2.4, 11, '#fff0f6', 4.5, 8, 0.5, -1);
+    panel(5, 5, '#ffffff', 3.5, 4, 2, 9);
+    panel(4, 4, '#dfe9ff', 2.5, -5, -1, 8);
+    panel(12, 3, '#ffe8ee', 1.1, 0, -7, 2);
+    return s;
+  }
   panel(9, 6, '#fff6ee', 7, 0, 8, 5);
   panel(2.2, 10, '#ffeef3', 4, -8, 1, 3);
   panel(2.2, 10, '#efe8ff', 2.6, 8, 0.5, -1);
@@ -27,24 +37,25 @@ export function detectTier() {
   return small ? 1 : 2;
 }
 
-export function createStage(canvas, tier) {
+export function createStage(canvas, tier, look = 'natural') {
+  const gloss = look === 'gloss';
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
   renderer.setClearColor(0x000000, 0);
   renderer.toneMapping = THREE.NeutralToneMapping;
-  renderer.toneMappingExposure = 1.04;
+  renderer.toneMappingExposure = gloss ? 1.1 : 1.04;
   renderer.localClippingEnabled = true;
   const dprCap = tier === 2 ? 1.75 : tier === 1 ? 1.5 : 1.25;
 
   const scene = new THREE.Scene();
   const pm = new THREE.PMREMGenerator(renderer);
-  scene.environment = pm.fromScene(studio(), 0.03).texture;
-  scene.environmentIntensity = 1.0;
+  scene.environment = pm.fromScene(studio(look), 0.03).texture;
+  scene.environmentIntensity = gloss ? 1.2 : 1.0;
   pm.dispose();
 
   const shadows = tier === 2;
   renderer.shadowMap.enabled = shadows;
   renderer.shadowMap.type = THREE.PCFShadowMap;
-  const key = new THREE.DirectionalLight('#fff1e6', 2.2);
+  const key = new THREE.DirectionalLight(gloss ? '#ffffff' : '#fff1e6', gloss ? 2.4 : 2.2);
   key.position.set(3, 4.5, 5);
   const keyDir = key.position.clone().normalize();
   if (shadows) {
@@ -61,11 +72,11 @@ export function createStage(canvas, tier) {
     key.target.position.set(x, y, 0);
     key.position.set(x, y, 0).addScaledVector(keyDir, 12);
   };
-  const rim = new THREE.DirectionalLight('#c58cff', 3.2);
+  const rim = new THREE.DirectionalLight(gloss ? '#efeaff' : '#c58cff', gloss ? 2.2 : 3.2);
   rim.position.set(-4.5, 2.5, -3.5);
-  const rim2 = new THREE.DirectionalLight('#ffb3c4', 1.4);
+  const rim2 = new THREE.DirectionalLight(gloss ? '#dcefff' : '#ffb3c4', gloss ? 1.6 : 1.4);
   rim2.position.set(4.5, -1, -3);
-  const fill = new THREE.DirectionalLight('#ffd9e0', 0.5);
+  const fill = new THREE.DirectionalLight(gloss ? '#ffeef2' : '#ffd9e0', gloss ? 0.7 : 0.5);
   fill.position.set(0, -4, 3);
   scene.add(key, rim, rim2, fill);
 
@@ -92,7 +103,7 @@ export function createStage(canvas, tier) {
   }
   resize(true);
 
-  return { renderer, scene, camera, view, resize, tier, shadows, fitShadow };
+  return { renderer, scene, camera, view, resize, tier, shadows, fitShadow, look };
 }
 
 // Where 3D content sits: right of the copy on wide screens, above it on phones.

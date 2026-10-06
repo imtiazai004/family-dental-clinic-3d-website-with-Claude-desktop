@@ -35,6 +35,16 @@ export const JOURNEY = [
   { title: 'Treatment and follow-up', text: 'Treatment goes at a pace you are comfortable with, and the clinic checks that everything has settled afterwards.' },
 ];
 
+// Visual style of the 3D: 'gloss' (bright, glossy, ad-style) or 'natural' (anatomical, v3).
+// For a quick comparison add #look-natural or #look-gloss to the page address.
+export const LOOK = 'gloss';
+export function currentLook() {
+  const h = (typeof location !== 'undefined' ? location.hash : '').toLowerCase();
+  if (h === '#look-natural') return 'natural';
+  if (h === '#look-gloss') return 'gloss';
+  return LOOK;
+}
+
 export const waLink = (text = '') =>
   `https://wa.me/${CLINIC.phoneIntl}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
 
