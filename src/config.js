@@ -39,8 +39,8 @@ export const JOURNEY = [
   },
   {
     title: 'Your check-up',
-    text: 'The dentist examines your teeth and gums and listens to what is bothering you. If an X-ray is needed, you will be told why.',
-    media: { video: 'media/journey-2-checkup.mp4', poster: 'media/journey-2-checkup.jpg', alt: 'Dr. Tabassum Ajmal at the clinic' },
+    text: 'Dr. Tabassum examines your teeth and gums and listens to what is bothering you. If an X-ray is needed, you will be told why.',
+    media: { video: 'media/journey-2-checkup.mp4', poster: 'media/journey-2-checkup.jpg', alt: 'Dr. Tabassum Ajmal treating a patient at the clinic' },
   },
   {
     title: 'Your plan, explained',
