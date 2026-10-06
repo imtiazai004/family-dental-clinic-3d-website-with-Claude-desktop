@@ -6,9 +6,11 @@ export function createLabels(layer, defs) {
   const items = defs.map((d) => {
     const el = document.createElement('div');
     el.className = 'lbl';
-    el.innerHTML = `<i></i><b>${d.text}</b>`;
+    // text may be a function, for labels whose wording changes (it is re-read every frame).
+    const text = typeof d.text === 'function' ? d.text() : d.text;
+    el.innerHTML = `<i></i><b>${text}</b>`;
     layer.appendChild(el);
-    return { ...d, el, shown: -1 };
+    return { ...d, el, b: el.querySelector('b'), last: text, shown: -1 };
   });
   return {
     update(camera, view, opacity) {
@@ -17,6 +19,10 @@ export function createLabels(layer, defs) {
         if (o < 0.01) {
           if (it.shown !== 0) { it.el.style.opacity = '0'; it.shown = 0; }
           continue;
+        }
+        if (typeof it.text === 'function') {
+          const now = it.text();
+          if (now !== it.last) { it.b.textContent = now; it.last = now; }
         }
         it.anchor.obj.localToWorld(v.copy(it.anchor.p));
         v.project(camera);

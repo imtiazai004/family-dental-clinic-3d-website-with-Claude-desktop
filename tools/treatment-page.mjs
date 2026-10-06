@@ -60,6 +60,32 @@ const HEAD = (title, desc) => `<meta charset="utf-8">
 const BRAND = `<svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 3.5c-2.4 0-4 1.9-4 4.6 0 2.2.9 3.6 1.6 5 .8 1.6.9 3.2 1.3 5 .3 1.5.9 2.4 1.8 2.4 1.1 0 1.4-1.3 1.7-3 .3-1.6.8-2.9 2.1-2.9s1.8 1.3 2.1 2.9c.3 1.7.6 3 1.7 3 .9 0 1.5-.9 1.8-2.4.4-1.8.5-3.4 1.3-5 .7-1.4 1.6-2.8 1.6-5 0-2.7-1.6-4.6-4-4.6-1.8 0-2.7 1-4.5 1s-2.7-1-4.5-1z"/></svg>
     <span class="brand-text"><span class="brand-name">Family Dental</span><span class="brand-sub">&amp; Aesthetic Clinic</span></span>`;
 
+// A type card whose 3D model comes apart when opened (see src/ui/explode-cards.js).
+// The details are in the page (hidden until opened), so they can still be read by search engines.
+function xcard(o, i, t) {
+  const n = String(i + 1).padStart(2, '0');
+  const d = o.detail || {};
+  return `
+        <li class="tx-card xcard" data-model="${esc(o.model)}">
+          <button class="xcard-open" type="button" aria-haspopup="dialog" aria-label="See the ${esc(o.name.toLowerCase())} in 3D">
+            <span class="xcard-media" aria-hidden="true"><img class="xcard-a" alt=""><img class="xcard-b" alt=""><span class="xcard-hint">See it come apart</span></span>
+          </button>
+          <span class="tx-card-n">${n}</span>
+          <h3>${esc(o.name)}</h3>
+          <p>${esc(o.text)}</p>
+          <div class="xcard-detail" hidden>
+            ${d.what ? `<p class="xd-what">${esc(d.what)}</p>` : ''}
+            ${d.bestFor ? `<h3 class="xd-h">Best for</h3><ul class="ticks">${d.bestFor.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+            ${d.involves ? `<h3 class="xd-h">What it involves</h3><p>${esc(d.involves)}</p>` : ''}
+            ${o.parts ? `<h3 class="xd-h">The parts</h3><p>${o.parts.map(esc).join(' · ')}</p>` : ''}
+          </div>
+          <div class="xcard-actions">
+            <button class="btn btn-ghost btn-sm xcard-more" type="button">See it in 3D</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-book="${esc(o.book || t.id)}">Ask about this</button>
+          </div>
+        </li>`;
+}
+
 export function renderTreatmentPage(t, { explicit = false } = {}) {
   const L = linker(2, explicit);
   const short = shortName(t);
@@ -88,7 +114,7 @@ export function renderTreatmentPage(t, { explicit = false } = {}) {
         <h2 id="types-h">${esc(t.options.title)}</h2>
         <p>The dentist recommends what suits you after your check-up and, if needed, an X-ray.</p>
       </div>
-      <ul class="tx-cards">${t.options.items.map((o, i) => `
+      <ul class="tx-cards${t.options.items.some((o) => o.model) ? ' has-3d' : ''}">${t.options.items.map((o, i) => o.model ? xcard(o, i, t) : `
         <li class="tx-card">
           <span class="tx-card-n">${String(i + 1).padStart(2, '0')}</span>
           <h3>${esc(o.name)}</h3>
@@ -134,7 +160,7 @@ export function renderTreatmentPage(t, { explicit = false } = {}) {
   }).join('');
 
   return `<!doctype html>
-<html lang="en" data-root="${L.root}" data-scene="${esc(t.scene)}" data-tx="${esc(t.id)}">
+<html lang="en" data-root="${L.root}" data-scene="${esc(t.scene)}"${t.story3d ? ` data-story="${esc(t.story3d)}"` : ''} data-tx="${esc(t.id)}">
 <head>
 ${HEAD(t.seoTitle, t.description)}
 <script type="application/ld+json">${JSON.stringify(ld)}</script>

@@ -22,24 +22,66 @@ export const TREATMENTS = [
     seoTitle: 'Dental implants in Peshawar | Family Dental & Aesthetic Clinic',
     description: 'Replace a missing tooth with a dental implant at Family Dental & Aesthetic Clinic, Nasir Bagh Road, Peshawar. See how an implant works, step by step, and book on WhatsApp.',
     lead: 'An implant replaces the root of a missing tooth with a small titanium post. Once the bone has healed around it, a crown made for your mouth is fixed on top, so the new tooth looks and works like your own.',
+    // Its own seven-step 3D story (src/three/implant-story.js), deeper than the home page's four steps.
+    story3d: 'implant',
     story: {
-      title: 'How an implant replaces a missing tooth',
-      length: '430vh',
-      marks: [0, 0.4, 0.62, 0.84],
+      title: 'Your implant, step by step',
+      length: '760vh',
+      marks: [0, 0.143, 0.286, 0.429, 0.571, 0.714, 0.857],
       steps: [
-        { title: 'The implant', text: 'A small titanium post is placed in the jawbone where the root used to be. Over a few months, the bone bonds to it.' },
-        { title: 'The abutment', text: 'A connector is fitted on top of the implant. It rises through the gum to hold the new tooth.' },
-        { title: 'The crown', text: 'A crown made for your mouth, shaped and coloured to match your other teeth, is fixed onto the abutment.' },
-        { title: 'A tooth that works like your own', text: 'You can bite, chew and smile normally again. With good care, an implant can last for many years.' },
+        { title: 'Check-up and X-ray', text: 'The dentist examines the gap and takes an X-ray to see how much bone there is, and where nerves and sinuses lie.' },
+        { title: 'Planning the implant', text: "The implant's position, angle and size are planned on the X-ray, so it sits safely in the bone and lines up with your bite." },
+        { title: 'Placing the implant', text: 'With the area numbed, the titanium implant is placed in the jawbone. Most people feel pressure rather than pain.' },
+        { title: 'Healing', text: "Over roughly three to six months, the bone grows tightly around the implant's threads. This bond is what makes it strong." },
+        { title: 'The abutment', text: 'A small connector is fitted on top of the implant. It rises through the gum to hold the new tooth.' },
+        { title: 'A crown that matches', text: 'The crown is made in a shade chosen to match your own teeth, then fixed onto the abutment.' },
+        { title: 'Bite check and follow-up', text: 'The dentist checks how your teeth meet and fine-tunes the crown if needed. Regular check-ups keep the implant healthy.' },
       ],
     },
+    // Each type opens into a 3D model that comes apart (src/three/implant-types.js).
     options: {
       title: 'Ways an implant can replace teeth',
-      confirm: true,
       items: [
-        { name: 'Single-tooth implant', text: 'One implant and one crown replace a single missing tooth, without filing down the teeth on either side.' },
-        { name: 'Implant bridge', text: 'When several teeth in a row are missing, two or more implants can hold a bridge of new teeth.' },
-        { name: 'Implant-supported denture', text: 'For a jaw with no teeth, a few implants can hold a full denture firmly, so it does not slip when you eat or speak.' },
+        {
+          name: 'Single-tooth implant', model: 'single',
+          text: 'One implant and one crown replace a single missing tooth, without filing down the teeth on either side.',
+          parts: ['Crown', 'Abutment', 'Implant'],
+          detail: {
+            what: 'An implant takes the place of the root, and a crown made for your mouth sits on top. The teeth next to the gap are left untouched.',
+            bestFor: ['One missing tooth', 'Healthy neighbouring teeth you would rather not file down for a bridge'],
+            involves: 'Placing the implant, a few months of healing, then the abutment and crown.',
+          },
+        },
+        {
+          name: 'Implant bridge', model: 'bridge',
+          text: 'When several teeth in a row are missing, two implants can hold a bridge of three or more new teeth.',
+          parts: ['Bridge of three teeth', 'Abutments', 'Two implants'],
+          detail: {
+            what: 'Instead of one implant for every missing tooth, two implants hold a fixed bridge. The tooth in the middle rests on the gum between them.',
+            bestFor: ['Three or more missing teeth in a row', 'Fewer implants than one per tooth'],
+            involves: 'Placing two implants, healing, then fitting the bridge.',
+          },
+        },
+        {
+          name: 'Implant-supported denture', model: 'overdenture',
+          text: 'For a jaw with no teeth, a few implants hold a full denture firmly, so it does not slip when you eat or speak.',
+          parts: ['Removable denture', 'Clip-on attachments', 'Implants'],
+          detail: {
+            what: 'A full denture clips onto two to four implants. It stays firmly in place when you eat and speak, and you can still take it out to clean it.',
+            bestFor: ['No teeth in a jaw', 'A denture that is loose or slips'],
+            involves: 'Placing the implants, healing, then a denture made with clips that fit the attachments.',
+          },
+        },
+        {
+          name: 'All-on-X full arch', model: 'allonx',
+          text: 'A full arch of fixed teeth held by four to six implants. Only the dentist removes it.',
+          parts: ['Fixed full-arch bridge', 'Back implants angled', 'Four to six implants'],
+          detail: {
+            what: 'A complete arch of teeth is fixed onto four to six implants. The back implants are often angled to make the most of the bone, so a bone graft may not be needed.',
+            bestFor: ['No teeth, or failing teeth, across a whole jaw', 'Wanting fixed teeth rather than a denture you take out'],
+            involves: 'Placing the implants, healing, then the final fixed bridge. The dentist will tell you whether a temporary bridge can be fitted while you heal.',
+          },
+        },
       ],
     },
     fit: {

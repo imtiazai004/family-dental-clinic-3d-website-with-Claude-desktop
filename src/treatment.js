@@ -7,6 +7,10 @@ import Lenis from 'lenis';
 import { CLINIC, waLink, currentLook, TUNE } from './config.js';
 import { createStage, computeLayout, detectTier } from './three/stage.js';
 import { buildScenes, seg, clamp, ease } from './three/scenes.js';
+import { createKit } from './three/kit.js';
+import { buildImplantStory } from './three/implant-story.js';
+import { makeDust } from './three/procedural.js';
+import { initExplodeCards } from './ui/explode-cards.js';
 import { createBot } from './ui/bot.js';
 import { createLabels } from './ui/labels.js';
 import { initNavMenu } from './ui/nav.js';
@@ -14,6 +18,8 @@ import { initNavMenu } from './ui/nav.js';
 const html = document.documentElement;
 const ROOT = html.dataset.root || './';
 const SCENE = html.dataset.scene;
+// Pages with their own, deeper 3D story (instead of reusing the home page's chapter).
+const STORY = html.dataset.story || '';
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const SNAP = new URLSearchParams(location.search).has('snap');
 const LOOK_NOW = currentLook();
@@ -105,13 +111,16 @@ function sceneChapters(presence, progress, ready) {
 // On phones the hero text is long, so while it is on screen the model sits higher and a little smaller.
 function layoutFor(progress, heroK = 0) {
   const L = computeLayout(stage.view, stage.tune.size);
-  if (SCENE === 'implant' && !L.portrait) {
+  if (SCENE === 'implant' && !STORY && !L.portrait) {
     const k = 1 - ease(seg(progress, 0.15, 0.6));
     L.wide = { ...L.wide, y: L.wide.y - 0.4 * k };
   }
+  // The implant story zooms in on details, so on phones it starts a little smaller.
+  if (L.portrait && STORY === 'implant') L.wide = { ...L.wide, s: L.wide.s * 0.86 };
   if (L.portrait && heroK > 0) {
     // The implant parts float high when taken apart, so that scene rises less and shrinks a little more.
-    const up = SCENE === 'implant' ? 0.28 : 0.42, shrink = SCENE === 'implant' ? 0.27 : 0.2;
+    const up = STORY === 'implant' ? 0.04 : SCENE === 'implant' ? 0.28 : 0.42;
+    const shrink = STORY === 'implant' ? 0.3 : SCENE === 'implant' ? 0.27 : 0.2;
     for (const key of ['main', 'wide', 'arch']) {
       L[key] = { ...L[key], y: L[key].y + up * heroK, s: L[key].s * (1 - shrink * heroK) };
     }
@@ -121,7 +130,16 @@ function layoutFor(progress, heroK = 0) {
 
 // ---------------------------------------------------------------- 3D
 const canvas = document.getElementById('gl');
-let stage = null, scenes = null, labels = null;
+let stage = null, driver = null, labels = null;
+const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+// Same entrance as the home page: the model grows and rises in with presence.
+function place(g, presence, l) {
+  g.visible = presence > 0.002;
+  if (!g.visible) return;
+  const e = easeOut(presence);
+  g.scale.setScalar(l.s * (0.55 + 0.45 * e));
+  g.position.set(l.x, l.y - (1 - e) * 0.8, 0);
+}
 const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
 addEventListener('pointermove', (e) => {
   if (e.pointerType !== 'mouse') return;
@@ -140,20 +158,16 @@ try {
 if (stage) {
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
+  const layer = document.getElementById('labels');
   const onLoad = (gltf) => {
-    scenes = buildScenes(gltf, stage);
-    labels = createLabels(document.getElementById('labels'), SCENE === 'implant' ? [
-      { group: 'implant', text: 'Crown', anchor: scenes.implantAnchors.crown },
-      { group: 'implant', text: 'Abutment', anchor: scenes.implantAnchors.abutment },
-      { group: 'implant', text: 'Implant', anchor: scenes.implantAnchors.fixture },
-    ] : []);
-    // Braces start from the clinic's natural tooth shade, not the stained "before whitening" one.
-    if (SCENE === 'braces') scenes.setShade(1);
-    // Show only this page's scene, then compile just its materials.
-    scenes.update(sceneChapters(1, 0, 1), 0, pointer, layoutFor(0, 1));
+    if (STORY === 'implant') driver = implantDriver(gltf, layer);
+    else driver = homeSceneDriver(gltf, layer);
+    // Draw the opening state once, then compile just the materials in use.
+    driver.update(1, 0, 0, 1, layoutFor(0, 1), 1);
     stage.renderer.compile(stage.scene, stage.camera);
     html.classList.add('loaded');
     readyStart = performance.now();
+    window.dispatchEvent(new CustomEvent('fd:model', { detail: { gltf, stage } }));
   };
   (async () => {
     let buf;
@@ -171,6 +185,65 @@ if (stage) {
     loader.parse(buf, './', onLoad, () => html.classList.add('no-gl'));
   })().catch(() => html.classList.add('no-gl'));
   addEventListener('resize', () => stage.resize());
+}
+
+// Cards whose 3D model comes apart, once the model file has loaded.
+addEventListener('fd:model', (e) => {
+  initExplodeCards({ gltf: e.detail.gltf, look: LOOK_NOW, tier: stage.tier, tune: stage.tune, lenis, reduce });
+}, { once: true });
+
+// The implant page's own seven-step story.
+function implantDriver(gltf, layer) {
+  const kit = createKit(gltf, stage);
+  const story = buildImplantStory(kit);
+  stage.scene.add(story.group);
+  const dust = makeDust(stage.tier === 0 ? 50 : 100);
+  stage.scene.add(dust);
+  if (stage.shadows) story.group.traverse((o) => { if (o.isMesh && !o.material.transparent) { o.castShadow = true; o.receiveShadow = true; } });
+  const A = story.anchors;
+  labels = createLabels(layer, [
+    { group: 'heroParts', text: 'Crown', anchor: A.heroCrown },
+    { group: 'heroParts', text: 'Abutment', anchor: A.heroAbutment },
+    { group: 'heroParts', text: 'Implant', anchor: A.heroImplant },
+    { group: 'gap', text: 'Missing tooth', anchor: A.gap },
+    { group: 'plan', text: 'Planned position and angle', anchor: A.plan },
+    { group: 'implant', text: 'Implant in the bone', anchor: A.implant },
+    { group: 'month', text: () => `Healing: month ${story.state.month}`, anchor: A.month },
+    { group: 'abutment', text: 'Abutment', anchor: A.abutment },
+    { group: 'crown', text: 'Shade matched', anchor: A.crown },
+    { group: 'bite', text: 'Bite checked', anchor: A.bite },
+  ]);
+  return {
+    update(presence, progress, t, heroK, L) {
+      place(story.group, presence, L.wide);
+      stage.fitShadow?.(L.wide.x, L.wide.y);
+      dust.material.uniforms.uTime.value = t;
+      dust.material.uniforms.uPx.value = stage.renderer.getPixelRatio() * 60;
+      dust.material.uniforms.uAmount.value = 0.5 * presence;
+      story.update(progress, t, pointer, heroK);
+    },
+    label: (g) => story.state.labels[g] || 0,
+  };
+}
+
+// RCT and braces pages reuse the home page's scenes, driving one chapter.
+function homeSceneDriver(gltf, layer) {
+  const scenes = buildScenes(gltf, stage);
+  labels = createLabels(layer, SCENE === 'implant' ? [
+    { group: 'implant', text: 'Crown', anchor: scenes.implantAnchors.crown },
+    { group: 'implant', text: 'Abutment', anchor: scenes.implantAnchors.abutment },
+    { group: 'implant', text: 'Implant', anchor: scenes.implantAnchors.fixture },
+  ] : []);
+  // Braces start from the clinic's natural tooth shade, not the stained "before whitening" one.
+  if (SCENE === 'braces') scenes.setShade(1);
+  let prog = 0;
+  return {
+    update(presence, progress, t, heroK, L, ready = 1) {
+      prog = progress;
+      scenes.update(sceneChapters(presence, progress, ready), t, pointer, L);
+    },
+    label: () => 1 - seg(prog, 0.1, 0.2),
+  };
 }
 
 // Review builds get a small switch to compare the two 3D looks.
@@ -203,7 +276,7 @@ function frame(now) {
   updateSteps();
   topBar.classList.toggle('scrolled', scrollY > 40);
 
-  if (scenes && !document.hidden) {
+  if (driver && !document.hidden) {
     const ready = reduce || SNAP ? 1 : ease(clamp((now - readyStart) / 1200));
     pointer.x += (pointer.tx - pointer.x) * kP;
     pointer.y += (pointer.ty - pointer.y) * kP;
@@ -211,14 +284,14 @@ function frame(now) {
     const progress = CH.story.progress;
     if (presence > 0.002 || rendered) {
       const heroK = ease(clamp(1 - CH.story.presence));
-      scenes.update(sceneChapters(presence, progress, ready), now / 1000, pointer, layoutFor(progress, heroK));
+      driver.update(presence, progress, now / 1000, heroK, layoutFor(progress, heroK), ready);
       stage.renderer.render(stage.scene, stage.camera);
       rendered = presence > 0.002;
-      labels.update(stage.camera, stage.view, () => presence * (1 - seg(progress, 0.1, 0.2)));
+      labels.update(stage.camera, stage.view, (g) => presence * driver.label(g));
     }
   }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 
-if (SNAP) window.__fd = { get stage() { return stage; }, get scenes() { return scenes; }, CH };
+if (SNAP) window.__fd = { get stage() { return stage; }, get driver() { return driver; }, CH };
