@@ -1,5 +1,6 @@
 // The treatments page (treatments/index.html): hero with a live 3D tooth, a filterable grid of all
 // ten treatments, a "help me choose" band, and the shared booking assistant.
+import { adoptLenis, isCurrentPage } from './ui/page-start.js';
 import './styles.css';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -38,6 +39,7 @@ document.addEventListener('click', (e) => {
 
 // ---------------------------------------------------------------- smooth scroll
 const lenis = reduce || SNAP ? null : new Lenis({ lerp: 0.11, smoothWheel: true });
+adoptLenis(lenis);
 const scrollToEl = (el) => {
   if (!el) return;
   if (lenis) lenis.scrollTo(el, { duration: 1.3, offset: -70 });
@@ -222,6 +224,7 @@ if (import.meta.env.VITE_REVIEW) {
 let last = performance.now();
 let presence = 1, rendered = true;
 function frame(now) {
+  if (!isCurrentPage()) return;
   const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
   last = now;
   lenis?.raf(now);

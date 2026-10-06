@@ -1,5 +1,6 @@
 // Treatment pages (treatments/<slug>/). Same 3D engine as the home page, driving one scene:
 // the hero shows the model taken apart, and the "how it works" story puts it together on scroll.
+import { adoptLenis, isCurrentPage } from './ui/page-start.js';
 import './styles.css';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
@@ -40,6 +41,7 @@ document.addEventListener('click', (e) => {
 
 // ---------------------------------------------------------------- smooth scroll
 const lenis = reduce ? null : new Lenis({ lerp: 0.11, smoothWheel: true, anchors: { offset: 0 } });
+adoptLenis(lenis);
 const topBar = document.getElementById('top-bar');
 for (const a of document.querySelectorAll('a[href^="#"]')) {
   a.addEventListener('click', (e) => {
@@ -252,6 +254,7 @@ if (import.meta.env.VITE_REVIEW) {
 let last = performance.now();
 let rendered = true;
 function frame(now) {
+  if (!isCurrentPage()) return;
   const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
   last = now;
   lenis?.raf(now);

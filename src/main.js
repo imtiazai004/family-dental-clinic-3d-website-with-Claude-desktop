@@ -1,3 +1,4 @@
+import { adoptLenis, isCurrentPage } from './ui/page-start.js';
 import './styles.css';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
@@ -80,6 +81,7 @@ document.addEventListener('click', (e) => {
 let lenis = null;
 if (!reduce) {
   lenis = new Lenis({ lerp: 0.11, smoothWheel: true, anchors: { offset: 0 } });
+  adoptLenis(lenis);
 }
 const topBar = document.getElementById('top-bar');
 
@@ -242,6 +244,7 @@ if (import.meta.env.VITE_REVIEW) {
 let last = performance.now();
 let rendered = true;
 function frame(now) {
+  if (!isCurrentPage()) return;
   const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
   last = now;
   lenis?.raf(now);
