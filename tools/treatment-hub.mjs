@@ -111,7 +111,7 @@ export function renderHubPage({ explicit = false } = {}) {
   return `<!doctype html>
 <html lang="en" data-root="${L.root}" data-hub>
 <head>
-${HEAD(HUB.seoTitle, HUB.description)}
+${HEAD(HUB.seoTitle, HUB.description, L.root)}
 <script type="application/ld+json">${JSON.stringify(ld)}</script>
 </head>
 <body class="tx-page hub-page">

@@ -2,11 +2,10 @@
 // click a model to open its page), a filterable grid, a "help me choose" tile, and the booking assistant.
 import { adoptLenis, isCurrentPage } from './ui/page-start.js';
 import './styles.css';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import Lenis from 'lenis';
 import { CLINIC, waLink, currentLook, TUNE } from './config.js';
-import { createStage, computeLayout, detectTier } from './three/stage.js';
+import { createStage, computeLayout, detectTier, prepareStage } from './three/stage.js';
+import { loadTeeth } from './three/model-file.js';
 import { createKit } from './three/kit.js';
 import { makeGlossKit } from './three/gloss.js';
 import { makeDust } from './three/procedural.js';
@@ -291,26 +290,12 @@ if (zone) {
   }, { passive: false });
 }
 
-async function loadModel() {
-  let buf;
-  try {
-    const r = await fetch(`${ROOT}models/teeth.glb`);
-    if (!r.ok) throw new Error(String(r.status));
-    buf = await r.arrayBuffer();
-  } catch {
-    const r = await fetch(`${ROOT}models/teeth.json`);
-    const bin = atob((await r.json()).glb);
-    const u8 = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
-    buf = u8.buffer;
-  }
-  const loader = new GLTFLoader();
-  loader.setMeshoptDecoder(MeshoptDecoder);
-  return new Promise((ok, fail) => loader.parse(buf, './', ok, fail));
-}
-
+// The ring's code downloads alongside the model file.
+const ringCode = MAKE_STILLS ? null : import('./three/hub-ring.js');
+ringCode?.catch(() => {});
+let ready3d = false;
 if (stage) {
-  loadModel().then(async (gltf) => {
+  loadTeeth(ROOT).then(async (gltf) => {
     if (MAKE_STILLS) {
       // Tool mode (tools/make-stills.mjs): render the card images and hand them over.
       const [{ makeStills }, { TREATMENTS, HUB }] = await Promise.all([import('./ui/tx-stills.js'), import('./treatments.js')]);
@@ -318,8 +303,8 @@ if (stage) {
       window.__stills = await makeStills({ gltf, look: LOOK_NOW, tune: stage.tune, jobs });
       return;
     }
-    const { buildHubRing } = await import('./three/hub-ring.js');
-    ring = buildHubRing(gltf, stage, RING, { reduce });
+    const { buildHubRing } = await ringCode;
+    ring = await buildHubRing(gltf, stage, RING, { reduce });
     ring.onFront(showFront);
     showFront(0);
     if (import.meta.env.VITE_REVIEW) window.__hub = { ring, camera: stage.camera, RING };
@@ -339,7 +324,9 @@ if (stage) {
       },
     };
     scene3d.update(1, 0, 0, computeLayout(stage.view, stage.tune.size), pointer);
-    stage.renderer.compile(stage.scene, stage.camera);
+    // compile in the background and put everything on the graphics card before showing the ring
+    await prepareStage(stage);
+    ready3d = true;
     html.classList.add('loaded');
     readyAt = performance.now();
   }).catch(() => html.classList.add('no-gl'));
@@ -369,7 +356,7 @@ function frame(now) {
   last = now;
   lenis?.raf(now);
   topBar.classList.toggle('scrolled', scrollY > 40);
-  if (scene3d && !document.hidden) {
+  if (scene3d && ready3d && !document.hidden) {
     const r = hero.getBoundingClientRect();
     const target = clamp((r.bottom - innerHeight * 0.15) / (innerHeight * 0.55));
     const k = SNAP ? 1 : 1 - Math.exp(-dt * 8);
@@ -382,6 +369,7 @@ function frame(now) {
     if (presence * ready > 0.002 || rendered) {
       scene3d.update(presence * ready, now / 1000, dt, computeLayout(stage.view, stage.tune.size), pointer);
       stage.renderer.render(stage.scene, stage.camera);
+      stage.frame(now);
       rendered = presence * ready > 0.002;
     }
     // which model is under the mouse (checked every frame, as the models move under a still pointer)

@@ -28,6 +28,11 @@ for pat in [r'<!doctype html>\s*', r'<html[^>]*>\s*', r'<meta charset="utf-8">\s
     html = re.sub(pat, '', html, count=1, flags=re.I)
 (out / 'index.html').write_text(html)
 
+# Every page preloads the model; here that is the JSON copy (the page script then asks for it first).
+for page in out.rglob('*.html'):
+    t = page.read_text()
+    page.write_text(t.replace('models/teeth.glb" as="fetch"', 'models/teeth.json" as="fetch"'))
+
 glb = (root / 'public' / 'models' / 'teeth.glb').read_bytes()
 (out / 'models' / 'teeth.json').write_text(json.dumps({'glb': base64.b64encode(glb).decode()}))
 print('wrote', out, sorted(p.relative_to(out).as_posix() for p in out.rglob('*') if p.is_file()))

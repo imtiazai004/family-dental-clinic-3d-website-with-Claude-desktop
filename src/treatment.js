@@ -2,11 +2,10 @@
 // the hero shows the model taken apart, and the "how it works" story puts it together on scroll.
 import { adoptLenis, isCurrentPage } from './ui/page-start.js';
 import './styles.css';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import Lenis from 'lenis';
 import { CLINIC, waLink, currentLook, TUNE } from './config.js';
-import { createStage, computeLayout, detectTier } from './three/stage.js';
+import { createStage, computeLayout, detectTier, prepareStage } from './three/stage.js';
+import { loadTeeth } from './three/model-file.js';
 import { buildScenes, seg, clamp, ease } from './three/scenes.js';
 import { createKit } from './three/kit.js';
 import { STORIES } from './three/stories/index.js';
@@ -20,6 +19,9 @@ const ROOT = html.dataset.root || './';
 const SCENE = html.dataset.scene;
 // Pages with their own, deeper 3D story (instead of reusing the home page's chapter).
 const STORY = html.dataset.story || '';
+// Start fetching this page's 3D story code now, alongside the model file, rather than after it.
+const storyCode = STORY && STORIES[STORY] ? STORIES[STORY]() : null;
+storyCode?.catch(() => {});
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const SNAP = new URLSearchParams(location.search).has('snap');
 const LOOK_NOW = currentLook();
@@ -147,7 +149,7 @@ addEventListener('pointermove', (e) => {
   pointer.ty = (e.clientY / innerHeight) * 2 - 1;
 }, { passive: true });
 
-let readyStart = 0;
+let readyStart = 0, ready3d = false;
 try {
   stage = createStage(canvas, detectTier(), LOOK_NOW);
   stage.tune = TUNE[LOOK_NOW] || {};
@@ -156,46 +158,36 @@ try {
 }
 
 if (stage) {
-  const loader = new GLTFLoader();
-  loader.setMeshoptDecoder(MeshoptDecoder);
   const layer = document.getElementById('labels');
   const onLoad = async (gltf) => {
     if (STORY && STORIES[STORY]) driver = await storyDriver(gltf, layer);
-    else driver = homeSceneDriver(gltf, layer);
-    // Draw the opening state once, then compile just the materials in use.
+    else driver = await homeSceneDriver(gltf, layer);
+    // Set the opening state, then compile in the background and put everything on the graphics
+    // card before the 3D is shown (no stall on first view or on the first scroll into a step).
     driver.update(1, 0, 0, 1, layoutFor(0, 1), 1);
-    stage.renderer.compile(stage.scene, stage.camera);
+    await prepareStage(stage);
+    ready3d = true;
     html.classList.add('loaded');
     readyStart = performance.now();
     window.dispatchEvent(new CustomEvent('fd:model', { detail: { gltf, stage } }));
   };
-  (async () => {
-    let buf;
-    try {
-      const r = await fetch(`${ROOT}models/teeth.glb`);
-      if (!r.ok) throw new Error(String(r.status));
-      buf = await r.arrayBuffer();
-    } catch {
-      const r = await fetch(`${ROOT}models/teeth.json`);
-      const bin = atob((await r.json()).glb);
-      const u8 = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
-      buf = u8.buffer;
-    }
-    loader.parse(buf, './', onLoad, () => html.classList.add('no-gl'));
-  })().catch(() => html.classList.add('no-gl'));
+  // The model's download started from the page's <head>; .glb normally, a JSON copy on some hosts.
+  loadTeeth(ROOT).then(onLoad).catch(() => html.classList.add('no-gl'));
   addEventListener('resize', () => stage.resize());
 }
 
-// Cards whose 3D model comes apart, once the model file has loaded.
+// Cards whose 3D model comes apart, once the model file has loaded. Their small 3D view is set up
+// a moment later, when the browser is idle, so it never competes with the page's first frames.
 addEventListener('fd:model', (e) => {
-  initExplodeCards({ gltf: e.detail.gltf, look: LOOK_NOW, tier: stage.tier, tune: stage.tune, lenis, reduce });
+  const go = () => initExplodeCards({ gltf: e.detail.gltf, look: LOOK_NOW, tier: stage.tier, tune: stage.tune, lenis, reduce });
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(go, { timeout: 2500 });
+  else setTimeout(go, 1200);
 }, { once: true });
 
 // Pages with their own 3D story (src/three/stories/<name>.js).
 async function storyDriver(gltf, layer) {
   const kit = createKit(gltf, stage);
-  const mod = await STORIES[STORY]();
+  const mod = await (storyCode || STORIES[STORY]());
   const story = mod.build(kit);
   stage.scene.add(story.group);
   const dust = makeDust(stage.tier === 0 ? 50 : 100);
@@ -217,8 +209,8 @@ async function storyDriver(gltf, layer) {
 }
 
 // RCT and braces pages reuse the home page's scenes, driving one chapter.
-function homeSceneDriver(gltf, layer) {
-  const scenes = buildScenes(gltf, stage);
+async function homeSceneDriver(gltf, layer) {
+  const scenes = await buildScenes(gltf, stage);
   labels = createLabels(layer, SCENE === 'implant' ? [
     { group: 'implant', text: 'Crown', anchor: scenes.implantAnchors.crown },
     { group: 'implant', text: 'Abutment', anchor: scenes.implantAnchors.abutment },
@@ -267,7 +259,9 @@ function frame(now) {
   updateSteps();
   topBar.classList.toggle('scrolled', scrollY > 40);
 
-  if (driver && !document.hidden) {
+  // While a type card is open, its panel covers the page (dimmed and blurred): the page's own 3D
+  // waits, so the open card's 3D gets the graphics card to itself.
+  if (driver && ready3d && !document.hidden && !html.classList.contains('xpanel-open')) {
     const ready = reduce || SNAP ? 1 : ease(clamp((now - readyStart) / 1200));
     pointer.x += (pointer.tx - pointer.x) * kP;
     pointer.y += (pointer.ty - pointer.y) * kP;
@@ -277,6 +271,7 @@ function frame(now) {
       const heroK = ease(clamp(1 - CH.story.presence));
       driver.update(presence, progress, now / 1000, heroK, layoutFor(progress, heroK), ready);
       stage.renderer.render(stage.scene, stage.camera);
+      stage.frame(now);
       rendered = presence > 0.002;
       labels.update(stage.camera, stage.view, (g) => presence * driver.label(g));
     }

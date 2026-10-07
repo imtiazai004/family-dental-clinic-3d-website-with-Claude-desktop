@@ -1,10 +1,9 @@
 import { adoptLenis, isCurrentPage } from './ui/page-start.js';
 import './styles.css';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import Lenis from 'lenis';
 import { CLINIC, waLink, currentLook, TUNE } from './config.js';
-import { createStage, computeLayout, detectTier } from './three/stage.js';
+import { createStage, computeLayout, detectTier, prepareStage } from './three/stage.js';
+import { loadTeeth } from './three/model-file.js';
 import { buildScenes, seg, clamp, ease } from './three/scenes.js';
 import { createBot } from './ui/bot.js';
 import { createLabels } from './ui/labels.js';
@@ -214,11 +213,10 @@ try {
   html.classList.add('no-gl');
 }
 
+let ready3d = false;
 if (stage) {
-  const loader = new GLTFLoader();
-  loader.setMeshoptDecoder(MeshoptDecoder);
-  const onLoad = (gltf) => {
-    scenes = buildScenes(gltf, stage);
+  const onLoad = async (gltf) => {
+    scenes = await buildScenes(gltf, stage);
     labels = createLabels(document.getElementById('labels'), [
       { group: 'anatomy', text: 'Enamel', anchor: scenes.anatomyAnchors.enamel },
       { group: 'anatomy', text: 'Dentin', anchor: scenes.anatomyAnchors.dentin },
@@ -228,27 +226,15 @@ if (stage) {
       { group: 'implant', text: 'Abutment', anchor: scenes.implantAnchors.abutment },
       { group: 'implant', text: 'Implant', anchor: scenes.implantAnchors.fixture },
     ]);
-    // Compile shaders up front so the first scroll into each scene doesn't stall.
-    stage.renderer.compile(stage.scene, stage.camera);
+    // Shaders compile in the background and everything reaches the graphics card before the
+    // 3D is shown, so neither the first view nor the first scroll into a scene stalls.
+    await prepareStage(stage);
+    ready3d = true;
     html.classList.add('loaded');
     readyStart = performance.now();
   };
-  // The GLB is the normal path; hosts that can't serve .glb get a base64 JSON copy.
-  (async () => {
-    let buf;
-    try {
-      const r = await fetch('./models/teeth.glb');
-      if (!r.ok) throw new Error(String(r.status));
-      buf = await r.arrayBuffer();
-    } catch {
-      const r = await fetch('./models/teeth.json');
-      const bin = atob((await r.json()).glb);
-      const u8 = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
-      buf = u8.buffer;
-    }
-    loader.parse(buf, './', onLoad, () => html.classList.add('no-gl'));
-  })().catch(() => html.classList.add('no-gl'));
+  // The model's download started from the page's <head>; .glb normally, a JSON copy on some hosts.
+  loadTeeth('./').then(onLoad).catch(() => html.classList.add('no-gl'));
   addEventListener('resize', () => stage.resize());
 }
 
@@ -283,7 +269,7 @@ function frame(now) {
   updateCopy();
   topBar.classList.toggle('scrolled', scrollY > 40);
 
-  if (scenes && !document.hidden) {
+  if (scenes && ready3d && !document.hidden) {
     ready = reduce ? 1 : ease(clamp((now - readyStart) / 1400));
     pointer.x += (pointer.tx - pointer.x) * kP;
     pointer.y += (pointer.ty - pointer.y) * kP;
@@ -304,6 +290,7 @@ function frame(now) {
     if (any > 0.002 || rendered) {
       scenes.update(ch, t, pointer, computeLayout(stage.view, stage.tune.size));
       stage.renderer.render(stage.scene, stage.camera);
+      stage.frame(now);
       rendered = any > 0.002;
       labels.update(stage.camera, stage.view, (g) => {
         if (g === 'anatomy') return CH.anatomy.presence * seg(CH.anatomy.progress, 0.38, 0.52) * (1 - seg(CH.anatomy.progress, 0.9, 1));

@@ -33,7 +33,7 @@ const svc = (id) => SERVICES.find((s) => s.id === id);
 const txById = (id) => TREATMENTS.find((t) => t.id === id);
 const shortName = (t) => t.name.replace(/^Dental /, '').toLowerCase();
 
-export const HEAD = (title, desc) => `<meta charset="utf-8">
+export const HEAD = (title, desc, root = './') => `<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
@@ -44,7 +44,8 @@ export const HEAD = (title, desc) => `<meta charset="utf-8">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231b0e1d'/%3E%3Cpath d='M8.2 5c-2 0-3.3 1.6-3.3 3.8 0 1.8.8 3 1.3 4.1.7 1.3.8 2.6 1.1 4.1.2 1.2.7 2 1.5 2 .9 0 1.1-1.1 1.4-2.5.3-1.3.7-2.4 1.8-2.4s1.5 1.1 1.8 2.4c.3 1.4.5 2.5 1.4 2.5.8 0 1.2-.8 1.5-2 .3-1.5.4-2.8 1.1-4.1.5-1.1 1.3-2.3 1.3-4.1 0-2.2-1.3-3.8-3.3-3.8-1.5 0-2.2.8-3.7.8S9.7 5 8.2 5z' fill='%23f5efe6'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Onest:wght@400;500;600&display=swap">`;
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Onest:wght@400;500;600&display=swap">
+<link rel="preload" href="${root}models/teeth.glb" as="fetch" crossorigin>`;
 
 export const BRAND = `<svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 3.5c-2.4 0-4 1.9-4 4.6 0 2.2.9 3.6 1.6 5 .8 1.6.9 3.2 1.3 5 .3 1.5.9 2.4 1.8 2.4 1.1 0 1.4-1.3 1.7-3 .3-1.6.8-2.9 2.1-2.9s1.8 1.3 2.1 2.9c.3 1.7.6 3 1.7 3 .9 0 1.5-.9 1.8-2.4.4-1.8.5-3.4 1.3-5 .7-1.4 1.6-2.8 1.6-5 0-2.7-1.6-4.6-4-4.6-1.8 0-2.7 1-4.5 1s-2.7-1-4.5-1z"/></svg>
     <span class="brand-text"><span class="brand-name">Family Dental</span><span class="brand-sub">&amp; Aesthetic Clinic</span></span>`;
@@ -151,7 +152,7 @@ export function renderTreatmentPage(t, { explicit = false } = {}) {
   return `<!doctype html>
 <html lang="en" data-root="${L.root}" data-scene="${esc(t.scene)}"${t.story3d ? ` data-story="${esc(t.story3d)}"` : ''} data-tx="${esc(t.id)}">
 <head>
-${HEAD(t.seoTitle, t.description)}
+${HEAD(t.seoTitle, t.description, L.root)}
 <script type="application/ld+json">${JSON.stringify(ld)}</script>
 </head>
 <body class="tx-page">

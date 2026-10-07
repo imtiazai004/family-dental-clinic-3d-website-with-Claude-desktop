@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { createKit } from './kit.js';
 import { buildTypeModel } from './types/index.js';
+import { breathe } from './stage.js';
 
 // The Treatments page hero: all ten treatments as 3D models on a slowly turning ring.
 // The one at the front comes forward, grows a little and comes apart to show its parts;
@@ -16,7 +17,8 @@ const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
 const OPEN = 0.85; // how far the front model comes apart
 
-export function buildHubRing(gltf, stage, items, { reduce = false } = {}) {
+// Async: the ten models are built one at a time, letting the page draw and respond in between.
+export async function buildHubRing(gltf, stage, items, { reduce = false } = {}) {
   const kit = createKit(gltf, stage);
   const root = new THREE.Group();
   const ring = new THREE.Group();
@@ -39,7 +41,9 @@ export function buildHubRing(gltf, stage, items, { reduce = false } = {}) {
     return { c, s };
   };
 
-  const slots = items.map((it, i) => {
+  const slots = [];
+  for (const [i, it] of items.entries()) {
+    if (i) await breathe();
     const model = buildTypeModel(kit, it.model);
     model.pivot.rotation.set(model.view.rx, model.view.ry, 0);
     // Same size for every model: fit it to a unit box, measured half apart so it has room to open.
@@ -61,8 +65,8 @@ export function buildHubRing(gltf, stage, items, { reduce = false } = {}) {
     hit.position.copy(shut.c);
     hit.scale.copy(shut.s);
     spin.add(hit);
-    return { model, spin, slot, hit, shut, open, k: 0, h: 0, phase: i * 1.7 };
-  });
+    slots.push({ model, spin, slot, hit, shut, open, k: 0, h: 0, phase: i * 1.7 });
+  }
   const hits = slots.map((s) => s.hit);
 
   // A thin track under the models with a bead for each treatment and a gold marker at the front:

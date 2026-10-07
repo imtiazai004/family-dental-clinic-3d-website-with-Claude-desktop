@@ -26,6 +26,27 @@ addEventListener('load', () => {
 }, { once: true });
 addEventListener('pageshow', (e) => { if (!e.persisted) toTop(); });
 
+// Opening another page of the site: its HTML is fetched as soon as the pointer rests on the link
+// (or a finger touches it), so the page is already on its way when the click lands. The scripts,
+// styles and 3D model it needs are shared with this page and already cached.
+const fetched = new Set([location.pathname]);
+function prefetch(e) {
+  const a = e.target.closest?.('a[href]');
+  if (!a || a.target === '_blank' || a.hasAttribute('download') || navigator.connection?.saveData) return;
+  try {
+    const u = new URL(a.href, location.href);
+    if (u.origin !== location.origin || fetched.has(u.pathname) || !/(\/|\.html)$/.test(u.pathname)) return;
+    fetched.add(u.pathname);
+    const l = document.createElement('link');
+    l.rel = 'prefetch';
+    l.href = u.pathname;
+    document.head.appendChild(l);
+  } catch { /* not a normal link */ }
+}
+addEventListener('pointerover', prefetch, { passive: true });
+addEventListener('touchstart', prefetch, { passive: true });
+addEventListener('focusin', prefetch, { passive: true });
+
 // If a host swaps pages inside the same window, the previous page's smooth scrolling and animation
 // loops must stop, or two of them would fight over the scroll position.
 const PAGE = {};

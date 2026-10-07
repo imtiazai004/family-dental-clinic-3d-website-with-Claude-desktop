@@ -4,6 +4,7 @@ import {
   makeFixture, makeAbutment, makeFile, makeBracket, makeArchCurve, makeGum, makePalate, makeTube, makeDust,
 } from './procedural.js';
 import { makeGlossKit, addToothFace } from './gloss.js';
+import { breathe } from './stage.js';
 
 export const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 export const seg = (p, a, b) => clamp((p - a) / (b - a));
@@ -18,7 +19,8 @@ function followPlane() {
   return { plane, sync(group, offset = 0) { local.constant = offset; plane.copy(local).applyMatrix4(group.matrixWorld); } };
 }
 
-export function buildScenes(gltf, stage) {
+// Async: the browser gets a moment to draw and respond between the sections below.
+export async function buildScenes(gltf, stage) {
   const { scene } = stage;
   const gloss = stage.look === 'gloss';
   const M = makeMaterials(stage.tier, stage.look, stage.tune);
@@ -63,6 +65,7 @@ export function buildScenes(gltf, stage) {
     roots: { obj: heroTooth.d, p: new THREE.Vector3(0.33, -1.25, 0.1) },
   };
 
+  await breathe();
   // ------------------------------------------------------------------ generations
   const gen = new THREE.Group();
   root.add(gen);
@@ -114,6 +117,7 @@ export function buildScenes(gltf, stage) {
     for (const it of [kid, teen, adult, senior]) { gen.add(it); genItems.push(it); }
   }
 
+  await breathe();
   // ------------------------------------------------------------------ implant
   const imp = new THREE.Group();
   const impPivot = new THREE.Group();
@@ -144,6 +148,7 @@ export function buildScenes(gltf, stage) {
     crown: { obj: implantCrown, p: new THREE.Vector3(0.45, 0.4, 0.2) },
   };
 
+  await breathe();
   // ------------------------------------------------------------------ root canal
   const rct = new THREE.Group();
   const rctPivot = new THREE.Group();
@@ -165,6 +170,7 @@ export function buildScenes(gltf, stage) {
   file.rotation.z = -0.136;
   rctPivot.add(rctJaw, rctTooth.g, file);
 
+  await breathe();
   // ------------------------------------------------------------------ crown + veneer
   const restore = new THREE.Group();
   root.add(restore);
@@ -211,6 +217,7 @@ export function buildScenes(gltf, stage) {
   veneerPivot.add(veneerSet);
   restore.add(crownPivot, veneerPivot);
 
+  await breathe();
   // ------------------------------------------------------------------ smile studio (upper arch)
   const studio = new THREE.Group();
   const studioPivot = new THREE.Group();
@@ -292,6 +299,7 @@ export function buildScenes(gltf, stage) {
   const gumA = new THREE.Color(gloss ? '#f6a2af' : '#e07a8a');
   const gumB = new THREE.Color(gloss ? '#f9b4c0' : '#e88f9c');
 
+  await breathe();
   // ------------------------------------------------------------------ gloss extras (glints, glow pads, kids' face)
   const gs = { ex: 0, crown: 0, newCrown: 0, ven: 0, shade: 0, den: 0 };
   let kit = null;

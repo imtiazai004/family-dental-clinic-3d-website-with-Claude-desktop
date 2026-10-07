@@ -61,6 +61,19 @@ Each treatment with its own page lives in `src/treatments.js` (intro, 3D story s
 
 Every tooth is generated from signed-distance functions (`tools/sdf.mjs`), meshed with surface nets (`tools/mesher.mjs`), simplified and compressed with meshoptimizer into one GLB. To change a shape, edit `tools/build-models.mjs` and run `npm run models`. The GLB opens in Blender if you want to sculpt further.
 
+## Speed (v9.5)
+
+Nothing was removed; the same 3D is prepared and drawn more smoothly.
+
+- **Model file starts downloading at once.** Every page's `<head>` preloads `models/teeth.glb` (the artifact build preloads the JSON copy and asks for it first, so there is no failed `.glb` request). Loader: `src/three/model-file.js`.
+- **Shaders compile in the background.** `prepareStage()` in `src/three/stage.js` uses three.js `compileAsync` (parallel shader compiling where the browser has it), then draws everything once into a single pixel so geometry, textures and shadow shaders are on the graphics card before the 3D is shown. Nothing compiles mid-scroll.
+- **Heavy setup is split up.** The home page's scenes (`buildScenes`) and the Treatments page's ring (`buildHubRing`) are built in pieces with short breaks (`breathe()`), so the page keeps responding.
+- **Treatment pages' "Types" cards** set up their small 3D view when the browser is idle after load (not at the moment the page appears), build one model at a time, and make their pictures one by one with background image encoding (`toBlob`). Before, all of this ran at once when you scrolled near the cards.
+- **Frame-rate governor.** `stage.frame()` watches the time between frames. Below about 48 fps it lowers the render resolution a small step (never below 60% of the screen's); when frames are smooth again it climbs back to full sharpness. As a last step on a struggling device, shadows are redrawn every other frame. Fast computers are never changed.
+- **Open type card:** the page's own 3D (dimmed and blurred behind the panel) pauses, so the card's 3D has the graphics card to itself.
+- **Faster page-to-page:** hovering or touching a link to another page fetches that page in advance (`src/ui/page-start.js`).
+- The story code of a treatment page and the ring code of the Treatments page start downloading together with the model, not after it.
+
 ## Booking assistant
 
 Guided flow: treatment → who → day → time → name → phone → notes → summary. It ends by opening WhatsApp to +92 333 9202134 with the request pre-filled; the clinic confirms the exact time. No backend, no cost. It also answers common questions (pain, implant timeline, whitening safety, children, location, timings, cost policy) by keyword.

@@ -86,12 +86,18 @@ export function createStage(canvas, tier, look = 'natural') {
 
   const view = { w: 1, h: 1, visW: 1, visH: 1, portrait: false };
   let lastW = 0, lastH = 0;
+  // Render resolution: the screen's own (up to the tier's cap), lowered a little by the frame-rate
+  // governor below only while the device cannot keep up.
+  let dprScale = 1;
+  const fullDpr = () => Math.min(window.devicePixelRatio || 1, dprCap);
+  const minDpr = () => Math.min(fullDpr(), Math.max(0.8, fullDpr() * 0.6));
+  const targetDpr = () => Math.max(minDpr(), fullDpr() * dprScale);
   function resize(force = false) {
     const w = canvas.clientWidth, h = canvas.clientHeight;
     // Ignore small height-only changes from mobile browser toolbars.
     if (!force && w === lastW && Math.abs(h - lastH) < 120) return false;
     lastW = w; lastH = h;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprCap));
+    renderer.setPixelRatio(targetDpr());
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
@@ -103,8 +109,97 @@ export function createStage(canvas, tier, look = 'natural') {
   }
   resize(true);
 
-  return { renderer, scene, camera, view, resize, tier, shadows, fitShadow, look };
+  // ---------------------------------------------------------------- frame-rate governor
+  // Call frame(now) after each rendered frame. Every 30 frames it looks at the average time between
+  // frames: below ~48 fps it lowers the render resolution one small step (never below 60% of the
+  // screen's); when frames are comfortably fast again it tries one step back up. The first moments
+  // after the page shows (uploads, first draws) and one-off hitches are not counted.
+  const gov = { last: 0, n: 0, sum: 0, worst: 0, lastChange: 0, settleUntil: 0, noUpUntil: 0, upTried: false, period: 16.7 };
+  function setScale(s, now) {
+    const before = renderer.getPixelRatio();
+    dprScale = s;
+    gov.lastChange = now;
+    gov.n = gov.sum = gov.worst = 0;
+    const want = targetDpr();
+    if (Math.abs(want - before) < 0.01) return;
+    renderer.setPixelRatio(want);
+    renderer.setSize(lastW, lastH, false);
+  }
+  let shadowHalf = false, frameNo = 0;
+  function frame(now) {
+    // last resort on a struggling device: shadows are redrawn every other frame
+    if (shadowHalf) renderer.shadowMap.needsUpdate = (++frameNo & 1) === 0;
+    const dt = gov.last ? now - gov.last : 0;
+    gov.last = now;
+    // a pause (nothing to draw, tab in the background) or the settling time after load is not counted
+    if (!dt || dt > 250 || document.hidden || now < gov.settleUntil) return;
+    // the screen's refresh interval (16.7 ms at 60 Hz, 8.3 at 120 Hz): follows the fastest frames
+    gov.period = Math.min(17.5, Math.max(6, Math.min(gov.period * 1.002, dt)));
+    gov.n++; gov.sum += dt; gov.worst = Math.max(gov.worst, dt);
+    if (gov.n < 30) return;
+    const avg = (gov.sum - gov.worst) / (gov.n - 1); // one slow frame in 30 is not a trend
+    const slow = avg > Math.max(21, gov.period * 1.35);
+    if (slow && renderer.getPixelRatio() <= minDpr() + 0.01 && shadows && !shadowHalf && now - gov.lastChange > 3000) {
+      shadowHalf = true;
+      renderer.shadowMap.autoUpdate = false;
+      gov.lastChange = now;
+      gov.n = gov.sum = gov.worst = 0;
+    } else if (slow && renderer.getPixelRatio() > minDpr() + 0.01) {
+      // slow again right after trying a sharper picture: stay at this level for a while
+      if (gov.upTried && now - gov.lastChange < 5000) gov.noUpUntil = now + 45000;
+      gov.upTried = false;
+      setScale(Math.max(minDpr() / fullDpr(), dprScale * 0.85), now);
+    } else if (dprScale < 1 && avg < Math.max(15.5, gov.period * 1.1) && now - gov.lastChange > 6000 && now > gov.noUpUntil) {
+      gov.upTried = true;
+      setScale(Math.min(1, dprScale / 0.9), now);
+    } else {
+      gov.n = gov.sum = gov.worst = 0;
+    }
+  }
+  // Ignore the next ms (a page that has just shown its 3D is still uploading and drawing for the first time).
+  const settle = (ms = 1500) => { gov.settleUntil = performance.now() + ms; gov.last = 0; gov.n = gov.sum = gov.worst = 0; };
+  settle(2000);
+
+  return { renderer, scene, camera, view, resize, tier, shadows, fitShadow, look, frame, settle, get dprScale() { return dprScale; } };
 }
+
+// Gets a scene ready to draw without freezing the page: shaders compile in the background where the
+// browser supports it (otherwise all at once, as before). Then everything is drawn once into a
+// single pixel, so geometry, textures and shadow shaders are on the graphics card before the first
+// scroll, rather than the first time each object comes into view.
+export async function prepareStage(stage, { warm = true } = {}) {
+  const { renderer, scene, camera } = stage;
+  try {
+    if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
+    else renderer.compile(scene, camera);
+  } catch {
+    try { renderer.compile(scene, camera); } catch { /* drawn on first use instead */ }
+  }
+  if (!warm) return;
+  const undo = [];
+  scene.traverse((o) => {
+    if (!o.visible) { o.visible = true; undo.push(() => { o.visible = false; }); }
+    if (o.frustumCulled && (o.isMesh || o.isPoints || o.isLine || o.isSprite)) { o.frustumCulled = false; undo.push(() => { o.frustumCulled = true; }); }
+  });
+  try {
+    scene.updateMatrixWorld(true);
+    // any shader variant only met now (for example for shadows) compiles here, before the page is shown
+    if (renderer.compileAsync) await renderer.compileAsync(scene, camera).catch(() => {});
+    renderer.setScissorTest(true);
+    renderer.setScissor(0, 0, 1, 1);
+    renderer.render(scene, camera);
+  } catch { /* not essential */ } finally {
+    renderer.setScissorTest(false);
+    undo.forEach((f) => f());
+    stage.settle?.();
+  }
+}
+
+// Lets the browser draw a frame and handle input between pieces of heavy setup work.
+export const breathe = () => new Promise((ok) => {
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(() => ok(), { timeout: 60 });
+  else setTimeout(ok, 0);
+});
 
 // Where 3D content sits: right of the copy on wide screens, above it on phones.
 // size > 1 enlarges the objects; wide scenes (jaw, arch) grow a little less so they stay clear of the copy.

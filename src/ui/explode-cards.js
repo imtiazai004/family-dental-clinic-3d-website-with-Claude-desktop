@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { createStage } from '../three/stage.js';
+import { createStage, prepareStage, breathe } from '../three/stage.js';
 import { createKit } from '../three/kit.js';
 import { buildTypeModel } from '../three/types/index.js';
 
@@ -30,18 +30,31 @@ export function initExplodeCards({ gltf, look, tier, tune, lenis, reduce }) {
   stage.tune = tune;
   const kit = createKit(gltf, stage);
   const models = {};
-  for (const c of cards) {
-    const key = c.dataset.model;
-    if (!models[key]) {
+  const showOnly = (key) => { for (const [k, m] of Object.entries(models)) m.root.visible = k === key; };
+  // The models are built one at a time in idle moments and their shaders compile in the background,
+  // so getting this view ready never holds up scrolling. A card opened before then waits for it.
+  let ready = false;
+  const readyP = (async () => {
+    for (const c of cards) {
+      const key = c.dataset.model;
+      if (models[key]) continue;
+      await breathe();
       models[key] = buildTypeModel(kit, key);
       models[key].root.visible = false;
       stage.scene.add(models[key].root);
     }
-  }
-  const showOnly = (key) => { for (const [k, m] of Object.entries(models)) m.root.visible = k === key; };
+    await breathe();
+    await prepareStage(stage);
+    ready = true;
+  })();
 
   // ---------------------------------------------------------------- stills for the cards
-  function still(key, k) {
+  // Two pictures per card (together / slightly apart). They are made one at a time when the browser
+  // is idle, and turned into images in the background (toBlob) rather than all at once.
+  const fitHolder = () => {
+    if (canvas.parentElement === holder && (canvas.clientWidth !== stage.view.w || canvas.clientHeight !== stage.view.h)) stage.resize(true);
+  };
+  function draw(key, k) {
     const m = models[key];
     showOnly(key);
     m.pivot.rotation.set(m.view.rx, m.view.ry, 0);
@@ -49,22 +62,38 @@ export function initExplodeCards({ gltf, look, tier, tune, lenis, reduce }) {
     m.fit(stage.view.visH, stage.view.visW, 0.86);
     m.beforeRender?.();
     stage.renderer.render(stage.scene, stage.camera);
-    return canvas.toDataURL('image/webp', 0.9);
   }
-  let made = false;
+  function still(key, k) {
+    fitHolder();
+    draw(key, k);
+    return new Promise((ok) => {
+      const sync = () => { draw(key, k); return canvas.toDataURL('image/webp', 0.9); };
+      if (!canvas.toBlob) { ok(canvas.toDataURL('image/webp', 0.9)); return; }
+      canvas.toBlob((b) => ok(b ? URL.createObjectURL(b) : sync()), 'image/webp', 0.9);
+    });
+  }
+  let making = null;
   function makeStills() {
-    if (made) return;
-    made = true;
-    stage.resize(true);
-    for (const c of cards) {
-      const key = c.dataset.model;
-      c.querySelector('.xcard-a').src = still(key, 0);
-      c.querySelector('.xcard-b').src = still(key, 0.42);
-      c.classList.add('ready');
-    }
+    if (making) return making;
+    making = (async () => {
+      await readyP;
+      for (const c of cards) {
+        // never while a card is open: the open card uses the same 3D view
+        while (openCard) await new Promise((r) => setTimeout(r, 250));
+        const key = c.dataset.model;
+        await breathe();
+        const a = await still(key, 0);
+        await breathe();
+        while (openCard) await new Promise((r) => setTimeout(r, 250));
+        const b = await still(key, 0.42);
+        c.querySelector('.xcard-a').src = a;
+        c.querySelector('.xcard-b').src = b;
+        c.classList.add('ready');
+      }
+    })();
+    return making;
   }
-  const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { makeStills(); io.disconnect(); } }, { rootMargin: '900px 0px' });
-  io.observe(cards[0]);
+  makeStills();
 
   // ---------------------------------------------------------------- panel
   const backdrop = document.createElement('div');
@@ -135,9 +164,9 @@ export function initExplodeCards({ gltf, look, tier, tune, lenis, reduce }) {
     anim.onfinish = () => { anim.cancel(); done?.(); };
   }
 
-  function open(card) {
-    if (openCard) return;
-    makeStills();
+  async function open(card) {
+    if (openCard || card.dataset.opening) return;
+    if (!ready) { card.dataset.opening = '1'; await readyP; delete card.dataset.opening; if (openCard) return; }
     openCard = card;
     current = card.dataset.model;
     const m = models[current];
