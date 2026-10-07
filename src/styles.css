@@ -172,11 +172,6 @@ main { position: relative; z-index: 1; }
 .section-head { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: end; margin-bottom: 2.6rem; }
 .section-head p { color: var(--ink-2); max-width: 34ch; justify-self: end; }
 .treatments { border-top: 1px solid var(--line); }
-.tx-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: 3rem; }
-.tx { display: flex; align-items: center; justify-content: space-between; gap: 1.2rem; padding: 1.35rem 0; border-top: 1px solid var(--line); }
-.tx-text { min-width: 0; display: grid; gap: 0.3rem; }
-.tx h3 { font-size: 1.45rem; }
-.tx p { color: var(--ink-2); font-size: 0.95rem; max-width: 40ch; }
 
 .proof { background: var(--bg-2); }
 .proof-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 3rem; align-items: center; }
@@ -415,7 +410,6 @@ address { font-style: normal; font-size: 1.25rem; line-height: 1.5; margin-top: 
   .journey-stage .dial { margin: calc(env(safe-area-inset-top, 0px) + 70px) auto 0; width: clamp(200px, calc(100svh - 500px), 100%); max-width: none; flex: none; }
   .brand-mark { width: 26px; height: 26px; }
   .section-head p { justify-self: start; }
-  .tx-list { grid-template-columns: 1fr; }
   .proof-grid, .visit-grid { grid-template-columns: 1fr; gap: 2.4rem; }
   .bot-launch { display: none; }
   .dock {
@@ -477,11 +471,18 @@ address { font-style: normal; font-size: 1.25rem; line-height: 1.5; margin-top: 
 }
 
 /* home page: links to treatment pages */
-.tx-actions { display: flex; gap: 0.5rem; flex: none; }
-.tx h3 a { text-decoration: none; }
-.tx h3 a:hover { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
 .copy-more { align-self: flex-start; color: var(--accent); font-size: 0.95rem; text-underline-offset: 4px; }
-.tx-list-more { margin: 2rem 0 0; display: flex; justify-content: center; }
+/* "Treatments" heading on the home page opens the treatments page */
+.head-link { display: inline-flex; align-items: center; gap: 0.18em; color: inherit; text-decoration: none; border-radius: 12px; }
+.head-link:hover { text-decoration: underline; text-underline-offset: 0.14em; text-decoration-thickness: 2px; text-decoration-color: rgba(218, 182, 104, 0.55); }
+.head-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; }
+.head-go {
+  display: inline-grid; place-items: center; width: 0.62em; height: 0.62em; margin-left: 0.22em; border-radius: 50%; flex: none;
+  border: 1px solid rgba(218, 182, 104, 0.55); color: var(--accent); transition: background-color 0.3s, border-color 0.3s, transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.head-go .arr { width: 46%; height: 46%; }
+.head-link:hover .head-go { background: rgba(218, 182, 104, 0.14); border-color: var(--accent); transform: translateX(0.12em); }
+a.hub-option { text-decoration: none; }
 
 /* ---------------------------------------------------------------- treatment pages */
 .tx-hero { min-height: 100vh; min-height: 100svh; display: flex; align-items: center; padding: 104px var(--gutter) 72px; }
@@ -548,7 +549,6 @@ address { font-style: normal; font-size: 1.25rem; line-height: 1.5; margin-top: 
   .tx-hero-copy .lede { font-size: 1rem; }
   .tx-hero .rating { display: none; }
   .tx-fit-grid { grid-template-columns: 1fr; }
-  .tx { align-items: flex-start; flex-direction: column; }
   .copy-more { display: none; }
 }
 @media (max-aspect-ratio: 9/10) and (max-height: 760px) {
@@ -762,12 +762,30 @@ html.ring-used .ring-hint { opacity: 0.45; }
 .hub-card.reveal.in { transition: opacity 0.8s ease var(--rd, 0ms), transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1), border-color 0.3s, box-shadow 0.45s; }
 
 /* "Help me choose" sits in the grid as a wide tile after the ten cards (it fills the last row). */
-.hub-grid .hub-help {
+.hub-grid .hub-help, .home-help-solo {
   grid-column: 1 / -1; display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 1.4rem 2.2rem; align-items: center;
   padding: clamp(1.6rem, 3vw, 2.6rem); border-radius: 26px;
   background: radial-gradient(70% 90% at 0% 0%, rgba(109, 47, 149, 0.45), transparent 70%), radial-gradient(60% 80% at 100% 100%, rgba(218, 182, 104, 0.12), transparent 70%), var(--bg-2);
 }
 @media (min-width: 1100px) { .hub-grid .hub-help { grid-column: span 2; } }
+/* Home page: on phones the ten cards are a sideways row (one card and the edge of the next), and the
+   "help me choose" tile follows it; on wider screens they are the same grid as the treatments page. */
+.home-help-solo, .home-dots { display: none; }
+.home-dots { justify-content: center; gap: 6px; }
+.home-dots i { width: 6px; height: 6px; border-radius: 3px; background: var(--line-2); transition: width 0.3s, background-color 0.3s; }
+.home-dots i.on { width: 20px; background: var(--accent); }
+@media (max-width: 699px) {
+  .home-tx {
+    display: flex; gap: 0.9rem; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+    margin-inline: calc(-1 * var(--gutter)); padding: 0.3rem var(--gutter) 0.9rem; scroll-padding-inline: var(--gutter); scrollbar-width: none;
+  }
+  .home-tx::-webkit-scrollbar { display: none; }
+  .home-tx > .hub-card { flex: 0 0 min(84%, 340px); scroll-snap-align: start; }
+  .home-tx > .hub-card.reveal { opacity: 1; transform: none; }
+  .home-tx > .hub-help { display: none; }
+  .home-help-solo { display: grid; grid-template-columns: 1fr; margin-top: 1.2rem; }
+  .home-dots { display: flex; }
+}
 .hub-help-copy { display: grid; gap: 0.8rem; align-content: start; }
 .hub-help-copy h3 { font-size: clamp(1.8rem, 2.8vw, 2.5rem); line-height: 1.08; }
 .hub-help-copy p { color: var(--ink-2); max-width: 38ch; margin: 0; }

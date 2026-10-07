@@ -79,7 +79,7 @@ export const SERVICES = [
   { id: 'rct', name: 'Root canal treatment', short: 'Root canal', desc: 'Remove infection from inside a tooth and save it from extraction.', keys: ['root canal', 'rct', 'canal', 'nerve'] },
   { id: 'crown', name: 'Crowns', short: 'Crowns', desc: 'A tooth-shaped cap that protects a cracked, heavily filled or weakened tooth.', keys: ['crown', 'cap'] },
   { id: 'veneer', name: 'Veneers', short: 'Veneers', desc: 'Thin porcelain or composite shells that fix chips, gaps and discolouration on front teeth.', keys: ['veneer', 'laminate'] },
-  { id: 'whitening', name: 'Teeth whitening', short: 'Whitening', desc: 'Lift tea, coffee and smoking stains with a supervised whitening treatment.', keys: ['whiten', 'white', 'bleach', 'stain', 'yellow'] },
+  { id: 'whitening', name: 'Teeth whitening', short: 'Whitening', desc: 'A supervised whitening treatment for a brighter, more even smile, in the clinic or at home.', keys: ['whiten', 'white', 'bleach', 'stain', 'yellow'] },
   { id: 'braces', name: 'Braces', short: 'Braces', desc: 'Straighten crowded or crooked teeth and correct the bite, gradually and gently.', keys: ['brace', 'align', 'crooked', 'straight'] },
   { id: 'filling', name: 'Fillings', short: 'Fillings', desc: 'Repair cavities with tooth-coloured fillings that blend in with your teeth.', keys: ['filling', 'cavity', 'cavities', 'hole', 'decay'] },
   { id: 'extraction', name: 'Tooth extraction', short: 'Extraction', desc: 'Careful removal of a tooth that cannot be saved, with clear aftercare advice.', keys: ['extract', 'remove', 'pull', 'wisdom'] },

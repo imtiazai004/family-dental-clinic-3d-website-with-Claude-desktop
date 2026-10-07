@@ -44,7 +44,9 @@ To switch:
 
 ## Treatment pages
 
-Each treatment with its own page lives in `src/treatments.js` (intro, 3D story steps, types, who it is for, aftercare, FAQ, related treatments). The build turns every entry into `treatments/<slug>/index.html` using one template (`tools/treatment-page.mjs`), and adds it to the header's Treatments menu and the home page list. To add a page: add an entry, then `npm run build`.
+Each treatment with its own page lives in `src/treatments.js` (intro, 3D story steps, types, who it is for, aftercare, FAQ, related treatments). The build turns every entry into `treatments/<slug>/index.html` using one template (`tools/treatment-page.mjs`), and adds it to the treatments page and the home page. To add a page: add an entry, then `npm run build`.
+
+- The home page's Treatments section uses the same picture cards as the treatments page (`renderHomeTreatments()` in `tools/treatment-hub.mjs`), ending with a "Not sure which one you need?" tile whose choices open the treatments page already filtered (`treatments/#pain`, `#missing`, `#smile`). Its heading "Treatments" is a link to the treatments page. On phones the cards are a sideways row with dots.
 
 - All ten pages have their own deeper 3D story (`story3d`), one module per treatment in `src/three/stories/` (registry in `stories/index.js`, shared helpers in `stories/core.js`). Each story is a set of steps on scroll; `K` holds the camera framing per step.
 - The type cards ("Types of …") explode into their parts when opened. Their models are in `src/three/types/` (`buildTypeModel(kit, key)` in `types/index.js`); the card's `model` key in `treatments.js` picks one.

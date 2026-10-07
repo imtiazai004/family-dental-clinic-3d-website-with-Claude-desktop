@@ -50,10 +50,48 @@ function card(t, i, L) {
         </li>`;
 }
 
+// Cards in the order of the problem groups, so filtered lists stay in a sensible order.
+// The home page uses the same order, so each treatment has the same number on both pages.
+const groupOrder = () => Object.keys(TX_GROUPS).flatMap((g) => TREATMENTS.filter((t) => t.group === g));
+
+// The home page's Treatments section: the same picture cards as the treatments page, then a wide
+// "Not sure which one you need?" tile whose three choices open the treatments page already filtered.
+export function renderHomeTreatments(L) {
+  const waText = 'Assalam o Alaikum, I found your clinic online and would like some advice about which treatment I need.';
+  // On phones the cards become a sideways row, so the tile is repeated after it (only one copy shows).
+  const help = (id, cls) => `
+        <${cls ? 'div' : 'li'} class="hub-card hub-help${cls ? ` ${cls}` : ' reveal'}" style="--rd: 90ms">
+          <div class="hub-help-copy">
+            <p class="eyebrow">Help me choose</p>
+            <h3 id="${id}">${esc(HUB.helper.title)}</h3>
+            <p>${esc(HUB.helper.text)}</p>
+            <div class="cta-row">
+              <a class="btn btn-primary btn-sm" href="${L.hub()}">Explore all ten treatments</a>
+              <a class="btn btn-ghost btn-sm" data-wa data-wa-text="${esc(waText)}">WhatsApp</a>
+            </div>
+          </div>
+          <div class="hub-options" role="group" aria-labelledby="${id}">${HUB.helper.options.map((o) => `
+            <a class="hub-option" href="${L.hub()}#${esc(o.group)}">
+              ${ICONS[o.group] || ''}
+              <span><b>${esc(o.label)}</b><small>${esc(o.hint)}</small></span>
+              ${ICONS.arrow}
+            </a>`).join('')}
+          </div>
+        </${cls ? 'div' : 'li'}>`;
+  return `
+      <ul class="hub-grid home-tx" aria-label="All treatments">${groupOrder().map((t, i) => card(t, i, L)).join('')}${help('home-choose-h')}
+      </ul>
+      <div class="home-dots" aria-hidden="true">${groupOrder().map((_, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</div>${help('home-choose-h2', 'home-help-solo')}`;
+}
+
+// "Treatments" as a section heading that opens the treatments page, with a small arrow.
+export function hubHeading(L, id) {
+  return `<h2 id="${id}"><a class="head-link" href="${L.hub()}">Treatments<span class="head-go" aria-hidden="true">${ICONS.arrow}</span></a></h2>`;
+}
+
 export function renderHubPage({ explicit = false } = {}) {
   const L = linker(1, explicit);
-  // Cards in the order of the problem groups, so filtered lists stay in a sensible order.
-  const order = Object.keys(TX_GROUPS).flatMap((g) => TREATMENTS.filter((t) => t.group === g));
+  const order = groupOrder();
   const counts = Object.fromEntries(Object.keys(TX_GROUPS).map((g) => [g, TREATMENTS.filter((t) => t.group === g).length]));
   const waText = 'Assalam o Alaikum, I found your clinic online and would like some advice about which treatment I need.';
   const faq = HUB.faq.map((f) => (f.fromHome ? FAQ.find((x) => x.q === f.fromHome) : f)).filter(Boolean);

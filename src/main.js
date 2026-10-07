@@ -18,8 +18,34 @@ html.dataset.look = LOOK_NOW;
 
 // ---------------------------------------------------------------- links and buttons
 for (const a of document.querySelectorAll('[data-wa]')) {
-  a.href = waLink('Assalam o Alaikum, I found your clinic online and would like to ask about an appointment.');
+  a.href = waLink(a.dataset.waText || 'Assalam o Alaikum, I found your clinic online and would like to ask about an appointment.');
   a.target = '_blank'; a.rel = 'noopener';
+}
+
+// The treatment cards rise into view as they are reached (as on the treatments page).
+const reveals = [...document.querySelectorAll('.reveal')];
+if (reduce || SNAP || !('IntersectionObserver' in window)) reveals.forEach((el) => el.classList.add('in'));
+else {
+  const io = new IntersectionObserver((es) => {
+    for (const e of es) if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+  reveals.forEach((el) => io.observe(el));
+}
+// Phones: the cards are a sideways row; the dots under it show which one is in view.
+const txRow = document.querySelector('.home-tx');
+const txDots = [...document.querySelectorAll('.home-dots i')];
+if (txRow && txDots.length) {
+  let raf = 0;
+  txRow.addEventListener('scroll', () => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      const first = txRow.firstElementChild;
+      const stepW = first ? first.getBoundingClientRect().width + parseFloat(getComputedStyle(txRow).columnGap || 0) : 1;
+      const atEnd = txRow.scrollLeft + txRow.clientWidth >= txRow.scrollWidth - 4;
+      const i = atEnd ? txDots.length - 1 : Math.round(txRow.scrollLeft / stepW);
+      txDots.forEach((d, j) => d.classList.toggle('on', j === i));
+    });
+  }, { passive: true });
 }
 for (const a of document.querySelectorAll('[data-reviews]')) { a.href = CLINIC.reviewsUrl; a.target = '_blank'; a.rel = 'noopener'; }
 for (const a of document.querySelectorAll('[data-maps]')) { a.href = CLINIC.mapsUrl; a.target = '_blank'; a.rel = 'noopener'; }

@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { TREATMENTS } from './src/treatments.js';
 import { renderTreatmentPage, navTx, topTx, linker } from './tools/treatment-page.mjs';
-import { renderHubPage } from './tools/treatment-hub.mjs';
+import { renderHubPage, renderHomeTreatments, hubHeading } from './tools/treatment-hub.mjs';
 
 // LINKS_EXPLICIT=1 writes index.html into page links, for hosts that don't serve folder indexes.
 const EXPLICIT = !!process.env.LINKS_EXPLICIT;
@@ -25,7 +25,7 @@ function writeTreatmentPages() {
 const PAGES = writeTreatmentPages();
 const HOME = linker(0, EXPLICIT);
 const pageOf = (id) => TREATMENTS.find((t) => t.id === id);
-import { SERVICES, GENERATIONS, JOURNEY, FAQ, FAQ_GROUPS, REVIEWS, BEFORE_AFTER } from './src/config.js';
+import { GENERATIONS, JOURNEY, FAQ, FAQ_GROUPS, REVIEWS, BEFORE_AFTER } from './src/config.js';
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -100,15 +100,6 @@ function staticContent() {
   return {
     name: 'static-content',
     transformIndexHtml(html) {
-      const services = SERVICES.map((s) => {
-        const pg = pageOf(s.id);
-        const href = pg && HOME.page(pg.slug);
-        return `
-        <li class="tx${pg ? ' has-page' : ''}">
-          <div class="tx-text"><h3>${pg ? `<a href="${href}">${esc(s.name)}</a>` : esc(s.name)}</h3><p>${esc(s.desc)}</p></div>
-          <div class="tx-actions">${pg ? `<a class="btn btn-ghost btn-sm" href="${href}" aria-label="Learn more about ${esc(s.name.toLowerCase())}">Learn more</a>` : ''}<button class="btn btn-ghost btn-sm" type="button" data-book="${s.id}" aria-label="Book ${esc(s.name.toLowerCase())}">Book</button></div>
-        </li>`;
-      }).join('');
       const gens = GENERATIONS.map((g, i) => `
             <article class="gen-panel" aria-label="${esc(g.title)}">
               <p class="step-n">${i + 1} of ${GENERATIONS.length}</p>
@@ -160,13 +151,13 @@ function staticContent() {
     </div>
   </section>` : '';
       return html
-        .replace('<!--SERVICES-->', services)
+        .replace('<!--TX_HEAD-->', hubHeading(HOME, 'treat-h'))
+        .replace('<!--TX_GRID-->', renderHomeTreatments(HOME))
         .replace('<!--GENERATIONS-->', gens)
         .replace('<!--JOURNEY-->', journey)
         .replace('<!--JOURNEY_MEDIA-->', journeyMedia)
         .replace('<!--NAV_TX-->', navTx(HOME))
         .replace('<!--TOP_TX-->', topTx(HOME))
-        .replace('<!--HUB_LINK-->', `<a class="btn btn-ghost" href="${HOME.hub()}">Explore all ten treatments</a>`)
         .replace(/<!--TXLINK:(\w+):([^>]*?)-->/g, (m, id, label) => {
           const pg = pageOf(id);
           return pg ? `<a class="copy-more" href="${HOME.page(pg.slug)}">${esc(label)}</a>` : '';
