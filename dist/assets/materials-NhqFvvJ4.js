@@ -1,4 +1,4 @@
-import{E as e,z as t}from"./bot-D-Cz5efb.js";var n=e=>new t(e);function r(e,t,n){let r=e.userData.patches||(e.userData.patches=[]);return r.push({key:t,fn:n}),e.onBeforeCompile=e=>{for(let t of r)t.fn(e)},e.customProgramCacheKey=()=>r.map(e=>e.key).join(`|`),e.needsUpdate=!0,e}var i=`
+import{E as e,z as t}from"./bot-POJ0Nif1.js";var n=e=>new t(e);function r(e,t,n){let r=e.userData.patches||(e.userData.patches=[]);return r.push({key:t,fn:n}),e.onBeforeCompile=e=>{for(let t of r)t.fn(e)},e.customProgramCacheKey=()=>r.map(e=>e.key).join(`|`),e.needsUpdate=!0,e}var i=`
 float fhash(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
 float vnoise(vec3 x){
   vec3 i = floor(x); vec3 f = fract(x); f = f * f * (3.0 - 2.0 * f);

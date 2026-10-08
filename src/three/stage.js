@@ -94,8 +94,10 @@ export function createStage(canvas, tier, look = 'natural') {
   const targetDpr = () => Math.max(minDpr(), fullDpr() * dprScale);
   function resize(force = false) {
     const w = canvas.clientWidth, h = canvas.clientHeight;
+    // Use the same breakpoint as CSS; 100lvh can be taller than the visible viewport.
+    const portrait = matchMedia('(max-aspect-ratio: 9/10)').matches;
     // Ignore small height-only changes from mobile browser toolbars.
-    if (!force && w === lastW && Math.abs(h - lastH) < 120) return false;
+    if (!force && w === lastW && Math.abs(h - lastH) < 120 && portrait === view.portrait) return false;
     lastW = w; lastH = h;
     renderer.setPixelRatio(targetDpr());
     renderer.setSize(w, h, false);
@@ -104,7 +106,7 @@ export function createStage(canvas, tier, look = 'natural') {
     view.w = w; view.h = h;
     view.visH = 2 * camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
     view.visW = view.visH * camera.aspect;
-    view.portrait = w / h < 0.9;
+    view.portrait = portrait;
     return true;
   }
   resize(true);
@@ -203,7 +205,7 @@ export const breathe = () => new Promise((ok) => {
 
 // Where 3D content sits: right of the copy on wide screens, above it on phones.
 // size > 1 enlarges the objects; wide scenes (jaw, arch) grow a little less so they stay clear of the copy.
-export function computeLayout(view, size = 1) {
+export function computeLayout(view, size = 1, heroRect = null) {
   const { visW, visH, portrait } = view;
   const g = size - 1;
   if (portrait) {
@@ -211,6 +213,14 @@ export function computeLayout(view, size = 1) {
     return {
       portrait: true,
       size,
+      // Pixel coordinates of the reserved hero space, projected onto the model's plane.
+      hero: heroRect?.height > 0 ? {
+        x: ((heroRect.left + heroRect.width / 2) / view.w - 0.5) * visW,
+        y: (0.5 - (heroRect.top + heroRect.height / 2) / view.h) * visH,
+        w: heroRect.width / view.w * visW,
+        h: heroRect.height / view.h * visH,
+        handoff: THREE.MathUtils.clamp(-heroRect.copyBottom / (view.h * 0.12), 0, 1),
+      } : null,
       main: { x: 0, y, s: Math.min(1, (visW * 0.9) / 2.6) * (1 + g * 0.45) },
       wide: { x: 0, y: y + 0.12, s: Math.min(1, (visW * 0.95) / 3.7) * (1 + g * 0.4) },
       arch: { x: 0, y: y + 0.1, s: Math.min(0.75, (visW * 1.1) / 5.6) * (1 + g * 0.3) },

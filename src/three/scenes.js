@@ -58,6 +58,9 @@ export async function buildScenes(gltf, stage) {
   heroPivot.add(heroTooth.g);
   hero.add(heroPivot);
   root.add(hero);
+  // Fit the whole rotating tooth into the mobile hero's reserved space.
+  const heroSphere = new THREE.Box3().setFromObject(heroPivot).getBoundingSphere(new THREE.Sphere());
+  const heroCenter = new THREE.Vector3();
   const anatomyAnchors = {
     enamel: { obj: heroTooth.e, p: new THREE.Vector3(0.0, 0.66, 0.15) },
     dentin: { obj: heroTooth.d, p: new THREE.Vector3(0.5, 0.15, 0.25) },
@@ -377,6 +380,16 @@ export async function buildScenes(gltf, stage) {
         heroTooth.e.rotation.z = 0.25 * ex;
         heroTooth.p.position.set(1.15 * ex * xs, 0.35 * ex, 0.45 * ex);
         heroTooth.d.position.set(0.05 * ex, -0.15 * ex, 0);
+        if (L.hero) {
+          // Keep the tooth out of the copy until it has scrolled away, then enter anatomy.
+          const fit = 1 - ease(L.hero.handoff);
+          const s = Math.min(L.hero.w, L.hero.h) * 0.86 / (2 * heroSphere.radius)
+            * (0.55 + 0.45 * easeOut(anyHero * heroIntro));
+          heroCenter.copy(heroSphere.center).applyEuler(heroPivot.rotation).add(heroPivot.position);
+          hero.scale.setScalar(lerp(hero.scale.x, s, fit));
+          hero.position.x = lerp(hero.position.x, L.hero.x - heroCenter.x * s, fit);
+          hero.position.y = lerp(hero.position.y, L.hero.y - heroCenter.y * s, fit);
+        }
       }
 
       // generations

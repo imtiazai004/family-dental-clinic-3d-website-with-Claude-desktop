@@ -109,6 +109,9 @@ if (!reduce) {
   adoptLenis(lenis);
 }
 const topBar = document.getElementById('top-bar');
+const heroVisual = document.querySelector('.hero-visual');
+const heroCopy = document.querySelector('.hero-copy');
+let heroRect = null;
 
 // ---------------------------------------------------------------- chapters
 const CH = {};
@@ -127,6 +130,9 @@ const genPanels = genTrack ? [...genTrack.children] : [];
 
 function measure() {
   const vh = innerHeight;
+  // This space scrolls with the hero, even when its copy needs more than one screen.
+  heroRect = heroVisual.getBoundingClientRect();
+  if (heroRect.height) heroRect.copyBottom = heroCopy.getBoundingClientRect().bottom;
   for (const c of Object.values(CH)) {
     const r = c.el.getBoundingClientRect();
     if (c.sticky) {
@@ -288,7 +294,7 @@ function frame(now) {
     const any = Math.max(CH.hero.presence, CH.anatomy.presence, CH.generations.presence, CH.implant.presence,
       CH.rct.presence, CH.restore.presence, CH.studio.presence);
     if (any > 0.002 || rendered) {
-      scenes.update(ch, t, pointer, computeLayout(stage.view, stage.tune.size));
+      scenes.update(ch, t, pointer, computeLayout(stage.view, stage.tune.size, heroRect));
       stage.renderer.render(stage.scene, stage.camera);
       stage.frame(now);
       rendered = any > 0.002;

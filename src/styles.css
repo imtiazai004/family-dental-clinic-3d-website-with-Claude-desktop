@@ -111,6 +111,7 @@ main { position: relative; z-index: 1; }
 
 /* hero */
 .hero { min-height: 100vh; min-height: 100svh; display: flex; align-items: center; padding: 96px var(--gutter) 64px; }
+.hero-visual { display: contents; }
 .hero-copy { width: min(36rem, 46vw); display: flex; flex-direction: column; gap: 1.3rem; }
 .place { color: var(--ink-2); font-size: 0.95rem; }
 .lede { color: var(--ink-2); font-size: 1.12rem; max-width: 36ch; }
@@ -384,9 +385,19 @@ address { font-style: normal; font-size: 1.25rem; line-height: 1.5; margin-top: 
   :root { --dock-h: calc(64px + env(safe-area-inset-bottom, 0px)); }
   .nav { display: none; }
   .top .btn { display: none; }
-  .hero { align-items: flex-end; padding-bottom: calc(var(--dock-h) + 28px); }
+  .hero {
+    flex-direction: column; align-items: stretch; justify-content: center; gap: 1.25rem;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 80px);
+    padding-bottom: calc(var(--dock-h) + 28px);
+  }
+  .hero-visual { display: block; position: relative; width: 100%; height: clamp(180px, 28svh, 280px); flex: none; }
   .hero-copy { width: 100%; gap: 1rem; }
-  .hero-loader { left: 50%; top: 32%; }
+  .hero h1 { font-size: clamp(2.5rem, 11vw, 4.5rem); }
+  .hero .lede { font-size: 1rem; }
+  .hero .rating { flex-wrap: wrap; gap: 0.2rem 0.6rem; }
+  .hero-loader { left: 50%; top: 50%; }
+  html.no-gl .hero-visual { display: none; }
+  .top { gap: 0.75rem; }
   .scroll-cue { display: none; }
   .stage { align-items: flex-end; padding-bottom: calc(var(--dock-h) + 14px); padding-top: 0; }
   .copy, .gen-wrap {
@@ -468,6 +479,11 @@ address { font-style: normal; font-size: 1.25rem; line-height: 1.5; margin-top: 
     background: rgba(25, 12, 33, 0.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   }
   .top-tx[aria-current="page"], .top-tx.is-active { border-color: var(--accent); color: var(--accent); }
+}
+@media (max-aspect-ratio: 9/10) and (max-width: 360px) {
+  .brand-name { font-size: 1.15rem; }
+  .brand-sub { font-size: 0.7rem; }
+  .top-tx { padding-inline: 0.75rem; }
 }
 
 /* home page: links to treatment pages */
