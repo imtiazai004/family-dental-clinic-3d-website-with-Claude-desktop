@@ -44,7 +44,7 @@ export function createBot() {
   launch.type = 'button';
   launch.className = 'btn btn-primary bot-launch';
   launch.setAttribute('data-book', '');
-  launch.innerHTML = `${TOOTH_ICON.replace('<svg', '<svg width="18" height="18"')}<span>Book a visit</span>`;
+  launch.innerHTML = `${TOOTH_ICON.replace('<svg', '<svg width="18" height="18"')}<span>Request an appointment</span>`;
   document.body.appendChild(launch);
 
   const root = document.createElement('div');

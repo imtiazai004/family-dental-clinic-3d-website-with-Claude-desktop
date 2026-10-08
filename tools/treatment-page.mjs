@@ -44,7 +44,7 @@ export const HEAD = (title, desc, root = './') => `<meta charset="utf-8">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231b0e1d'/%3E%3Cpath d='M8.2 5c-2 0-3.3 1.6-3.3 3.8 0 1.8.8 3 1.3 4.1.7 1.3.8 2.6 1.1 4.1.2 1.2.7 2 1.5 2 .9 0 1.1-1.1 1.4-2.5.3-1.3.7-2.4 1.8-2.4s1.5 1.1 1.8 2.4c.3 1.4.5 2.5 1.4 2.5.8 0 1.2-.8 1.5-2 .3-1.5.4-2.8 1.1-4.1.5-1.1 1.3-2.3 1.3-4.1 0-2.2-1.3-3.8-3.3-3.8-1.5 0-2.2.8-3.7.8S9.7 5 8.2 5z' fill='%23f5efe6'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Onest:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Onest:wght@400;500;600&display=swap">
 <link rel="preload" href="${root}models/teeth.glb" as="fetch" crossorigin>`;
 
 export const BRAND = `<svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 3.5c-2.4 0-4 1.9-4 4.6 0 2.2.9 3.6 1.6 5 .8 1.6.9 3.2 1.3 5 .3 1.5.9 2.4 1.8 2.4 1.1 0 1.4-1.3 1.7-3 .3-1.6.8-2.9 2.1-2.9s1.8 1.3 2.1 2.9c.3 1.7.6 3 1.7 3 .9 0 1.5-.9 1.8-2.4.4-1.8.5-3.4 1.3-5 .7-1.4 1.6-2.8 1.6-5 0-2.7-1.6-4.6-4-4.6-1.8 0-2.7 1-4.5 1s-2.7-1-4.5-1z"/></svg>
@@ -170,7 +170,7 @@ ${HEAD(t.seoTitle, t.description, L.root)}
     <a href="${L.home('#visit')}">Visit</a>
   </nav>
   ${topTx(L, 'tx')}
-  <button class="btn btn-primary btn-sm" type="button" data-book="${esc(t.id)}">Book a visit</button>
+  <button class="btn btn-primary btn-sm" type="button" data-book="${esc(t.id)}">Request an appointment</button>
 </header>
 
 <canvas id="gl" aria-hidden="true"></canvas>
@@ -190,7 +190,7 @@ ${HEAD(t.seoTitle, t.description, L.root)}
       <h1 id="tx-h">${esc(t.name)}</h1>
       <p class="lede">${esc(t.lead)}</p>
       <div class="cta-row">
-        <button class="btn btn-primary" type="button" data-book="${esc(t.id)}">Book a visit</button>
+        <button class="btn btn-primary" type="button" data-book="${esc(t.id)}">Request an appointment</button>
         <a class="btn btn-ghost" data-wa data-wa-text="${esc(waText)}">Ask on WhatsApp</a>
       </div>
       <a class="rating" data-reviews>
@@ -252,7 +252,7 @@ ${quote}
         <h2 id="book-h">Talk to the clinic about ${esc(short)}</h2>
         <p>Book a check-up. The dentist examines you and explains your options, how long each takes and what it costs, before anything starts.</p>
         <div class="cta-row">
-          <button class="btn btn-primary" type="button" data-book="${esc(t.id)}">Book a visit</button>
+          <button class="btn btn-primary" type="button" data-book="${esc(t.id)}">Request an appointment</button>
           <a class="btn btn-ghost" data-wa data-wa-text="${esc(waText)}">WhatsApp</a>
           <a class="btn btn-ghost" href="tel:+${esc(CLINIC.phoneIntl)}">Call ${esc(CLINIC.phoneDisplay)}</a>
         </div>

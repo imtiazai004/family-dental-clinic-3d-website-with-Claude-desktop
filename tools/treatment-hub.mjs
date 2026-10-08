@@ -129,7 +129,7 @@ ${HEAD(HUB.seoTitle, HUB.description, L.root)}
     <a href="${L.home('#visit')}">Visit</a>
   </nav>
   ${topTx(L, 'hub')}
-  <button class="btn btn-primary btn-sm" type="button" data-book>Book a visit</button>
+  <button class="btn btn-primary btn-sm" type="button" data-book>Request an appointment</button>
 </header>
 
 <canvas id="gl" aria-hidden="true"></canvas>
@@ -249,7 +249,7 @@ ${HEAD(HUB.seoTitle, HUB.description, L.root)}
       <div class="dentist-copy">
         <h2 id="dentist-h">${esc(CLINIC.dentist.name)}</h2>
         <p class="role">${esc(CLINIC.dentist.role)}</p>
-        <p>Every treatment at the clinic is planned and carried out by Dr. Tabassum. As a prosthodontist she specialises in restoring and replacing teeth, with crowns, veneers, implants and dentures. She explains each step, and what it costs, before anything starts.</p>
+        <p>Dr. Tabassum specialises in restoring and replacing teeth, including crowns, veneers, implants and dentures. At your check-up, she explains your treatment options and costs before anything starts.</p>
         <div class="cta-row">
           <button class="btn btn-primary" type="button" data-book>Book with Dr. Tabassum</button>
           <a class="btn btn-ghost" href="${L.home('#dentist')}">About the clinic</a>
@@ -279,7 +279,7 @@ ${HEAD(HUB.seoTitle, HUB.description, L.root)}
         <h2 id="book-h">Book a check-up</h2>
         <p>The dentist examines you and explains your options, how long each takes and what it costs, before anything starts.</p>
         <div class="cta-row">
-          <button class="btn btn-primary" type="button" data-book>Book a visit</button>
+          <button class="btn btn-primary" type="button" data-book>Request an appointment</button>
           <a class="btn btn-ghost" data-wa data-wa-text="${esc(waText)}">WhatsApp</a>
           <a class="btn btn-ghost" href="tel:+${esc(CLINIC.phoneIntl)}">Call ${esc(CLINIC.phoneDisplay)}</a>
         </div>

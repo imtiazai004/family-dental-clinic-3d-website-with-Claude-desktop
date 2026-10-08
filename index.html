@@ -12,7 +12,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231b0e1d'/%3E%3Cpath d='M8.2 5c-2 0-3.3 1.6-3.3 3.8 0 1.8.8 3 1.3 4.1.7 1.3.8 2.6 1.1 4.1.2 1.2.7 2 1.5 2 .9 0 1.1-1.1 1.4-2.5.3-1.3.7-2.4 1.8-2.4s1.5 1.1 1.8 2.4c.3 1.4.5 2.5 1.4 2.5.8 0 1.2-.8 1.5-2 .3-1.5.4-2.8 1.1-4.1.5-1.1 1.3-2.3 1.3-4.1 0-2.2-1.3-3.8-3.3-3.8-1.5 0-2.2.8-3.7.8S9.7 5 8.2 5z' fill='%23f5efe6'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Onest:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Onest:wght@400;500;600&display=swap">
 <link rel="preload" href="./models/teeth.glb" as="fetch" crossorigin>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Dentist","name":"Family Dental & Aesthetic Clinic","telephone":"+92 333 9202134","address":{"@type":"PostalAddress","streetAddress":"1st Floor, Al-Sayed Tower, Nasir Bagh Road, near Amal Labs, Malakandher","addressLocality":"Peshawar","addressRegion":"Khyber Pakhtunkhwa","addressCountry":"PK"},"slogan":"Smiles for every generation","sameAs":["https://www.instagram.com/familydentalclinicpeshawar/"],"employee":{"@type":"Person","name":"Dr. Tabassum Ajmal","jobTitle":"Dentist and prosthodontist"}}
@@ -29,14 +29,14 @@
   <nav class="nav" aria-label="Sections">
     <a href="#anatomy">Inside a tooth</a>
     <a href="#implant">Implants</a>
-    <a href="#studio">Smile studio</a>
+    <a href="#studio">Smile treatments</a>
     <a href="#dentist">Your dentist</a>
     <!--NAV_TX-->
     <a href="#faq">FAQ</a>
     <a href="#visit">Visit</a>
   </nav>
   <!--TOP_TX-->
-  <button class="btn btn-primary btn-sm" type="button" data-book>Book a visit</button>
+  <button class="btn btn-primary btn-sm" type="button" data-book>Request an appointment</button>
 </header>
 
 <canvas id="gl" aria-hidden="true"></canvas>
@@ -50,11 +50,12 @@
     <div class="hero-copy">
       <p class="place">Nasir Bagh Road, Peshawar</p>
       <h1>Smiles for every generation</h1>
-      <p class="lede">Family and cosmetic dentistry under one roof. From a child's first check-up to implants and dentures for grandparents.</p>
+      <p class="lede">Dental care for your whole family in Peshawar—from routine check-ups to cosmetic treatments, implants and dentures.</p>
       <div class="cta-row">
-        <button class="btn btn-primary" type="button" data-book>Book a visit</button>
+        <button class="btn btn-primary" type="button" data-book>Request an appointment</button>
         <a class="btn btn-ghost" data-wa>Chat on WhatsApp</a>
       </div>
+      <p class="hero-confirmation">The clinic confirms your appointment time on WhatsApp.</p>
       <a class="rating" data-reviews>
         <span class="stars" aria-hidden="true">★★★★★</span>
         <span><strong>5.0</strong> on Google from 93 reviews</span>
@@ -101,7 +102,7 @@
   <section class="chapter sticky" id="implant" data-chapter="implant" style="--len: 430vh" aria-labelledby="implant-h">
     <div class="stage">
       <div class="copy">
-        <h2 id="implant-h">How an implant replaces a missing tooth</h2>
+        <h2 id="implant-h">Replacing a missing tooth</h2>
         <ol class="steps" data-steps="0,0.4,0.62,0.84">
           <li class="step">
             <p class="step-n">Step 1 of 4</p>
@@ -134,7 +135,7 @@
   <section class="chapter sticky" id="rct" data-chapter="rct" style="--len: 430vh" aria-labelledby="rct-h">
     <div class="stage">
       <div class="copy">
-        <h2 id="rct-h">Root canal treatment saves an infected tooth</h2>
+        <h2 id="rct-h">Saving an infected tooth</h2>
         <ol class="steps" data-steps="0,0.26,0.52,0.78">
           <li class="step">
             <p class="step-n">Step 1 of 4</p>
@@ -190,7 +191,7 @@
   <section class="chapter sticky" id="studio" data-chapter="studio" style="--len: 460vh" aria-labelledby="studio-h">
     <div class="stage">
       <div class="copy">
-        <h2 id="studio-h">Smile studio</h2>
+        <h2 id="studio-h">Smile treatments</h2>
         <ol class="steps" data-steps="0,0.37,0.68">
           <li class="step">
             <h3>Braces</h3>
@@ -228,8 +229,8 @@
       <div class="dentist-copy">
         <h2 id="dentist-h">Dr. Tabassum Ajmal</h2>
         <p class="role">Dentist and prosthodontist</p>
-        <p>A prosthodontist is a dentist who specialises in restoring and replacing teeth: crowns, veneers, implants and dentures. It is the same work you scrolled through above, from the implant to the complete denture.</p>
-        <p>Dr. Tabassum leads Family Dental &amp; Aesthetic Clinic on Nasir Bagh Road, where children, parents and grandparents are all looked after in one place.</p>
+        <p>Dr. Tabassum specialises in restoring and replacing teeth, including crowns, veneers, implants and dentures.</p>
+        <p>At your check-up, she explains your treatment options and costs before anything starts.</p>
         <div class="cta-row">
           <button class="btn btn-primary" type="button" data-book>Book with Dr. Tabassum</button>
           <a class="btn btn-ghost" data-instagram>Follow on Instagram</a>
@@ -265,7 +266,7 @@
     <div class="wrap">
       <div class="section-head">
         <!--TX_HEAD-->
-        <p>Ten treatments at one clinic. Open one to see how it works, step by step in 3D, or book a visit for it. Costs are explained after your check-up, <a href="#faq">here's why</a>.</p>
+        <p>Explore our treatments and find out what to expect. Your options and costs are explained after your check-up.</p>
       </div>
       <!--TX_GRID-->
     </div>
@@ -321,7 +322,7 @@
         <p class="contact-label">Phone and WhatsApp</p>
         <p class="phone"><span class="phone-num">+92 333 9202134</span><button class="copy-btn" type="button" data-copy="+92 333 9202134">Copy</button></p>
         <div class="contact-actions">
-          <button class="btn btn-primary" type="button" data-book>Book a visit</button>
+          <button class="btn btn-primary" type="button" data-book>Request an appointment</button>
           <a class="btn btn-ghost" data-wa>Chat on WhatsApp</a>
           <a class="btn btn-ghost" href="tel:+923339202134">Call the clinic</a>
           <a class="btn btn-ghost" data-maps>Get directions</a>

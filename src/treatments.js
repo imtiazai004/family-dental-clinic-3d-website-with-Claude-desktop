@@ -861,7 +861,7 @@ export const HUB = {
   description: 'All ten treatments at Family Dental & Aesthetic Clinic, Nasir Bagh Road, Peshawar: implants, root canal, braces, crowns, veneers, whitening, fillings, extraction and dentures, each shown step by step in 3D.',
   eyebrow: 'Ten treatments, one clinic',
   title: 'Our treatments',
-  lead: "From a child's first filling to dentures for grandparents, every treatment is planned and carried out by Dr. Tabassum Ajmal. Open one to see how it works, step by step in 3D, or tell us what is wrong and we will help you choose.",
+  lead: 'Explore our treatments and find out what to expect. Your options and costs are explained after your check-up.',
   gridTitle: 'Find your treatment',
   gridText: 'Each page shows the treatment step by step in 3D, the types on offer, who it suits, aftercare and common questions.',
   helper: {
